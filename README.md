@@ -41,7 +41,7 @@ using (var fileStream = File.OpenRead(pathToSrtFile)){
 > [!TIP]
 > While this is not legal advice, a common misconception is that the [LGPL license](https://choosealicense.com/licenses/lgpl-3.0/), due to having "GPL" in its name, requires you to license your program under the GPL or the same license. This is not necessarily true. Since this project is a library,
 > the requirements depend on how you use the library and the compatibility between this project's license and your project's license. However, please note that this tip does not override the specific requirements of the LGPL license. There may be
-> additional obligations based on your use case. For further clarification, you can refer to the [LGPL FAQ about static vs dynamic linking requirements](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic) and this [Reddit post](https://www.reddit.com/r/rust/comments/fevz37/comment/fjsg393/).
+> additional obligations based on your use case. For further clarification, you can refer to the [LGPL FAQ about static vs dynamic linking requirements](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic), this [Reddit post](https://www.reddit.com/r/rust/comments/fevz37/comment/fjsg393/), or this [blog post](https://coding.abel.nu/2016/10/the-lgpl-license/#:~:text=LGPL%20is%20not%20%E2%80%9Ccontagious%E2%80%9D%20in,affects%20the%20component%20under%20LGPL.). **Again**, **this is not legal advice**.
 
 ⚠️ The **original version**, [available here](https://github.com/AlexPoint/SubtitlesParser/tree/3e3b97409481dccaa5bb96391d1c066cf0f2dfef), is licensed under the original project made by AlexPoint, license/credits:
 ```
