@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" ttp:tickRate="10000000" ttp:timeBase="media" xmlns="http://www.w3.org/ns/ttml">
+<!-- This file implements time as ticks (T) -->
+	<head>
+		<ttp:profile use="http://netflix.com/ttml/profile/dfxp-ls-sdh"/>
+		<styling>
+			<style tts:color="white" tts:fontSize="100%" tts:fontWeight="normal" xml:id="s1"/>
+			<style tts:color="white" tts:fontSize="100%" tts:fontStyle="italic" tts:fontWeight="normal" xml:id="s1_1"/>
+		</styling>
+		<layout>
+			<region tts:displayAlign="after" tts:extent="80.00% 80.00%" tts:origin="10.00% 10.00%" tts:textAlign="center" xml:id="bottomCenter"/>
+			<region tts:displayAlign="before" tts:extent="80.00% 80.00%" tts:origin="10.00% 10.00%" tts:textAlign="center" xml:id="topCenter"/>
+		</layout>
+	</head>
+
+	<ttm:metadata>
+		<ttm:tool>Netflix Sample Format</ttm:tool>
+		<ttm:website>www.example.com</ttm:website>
+	</ttm:metadata>
+
+	<body>
+		<div>
+			<p begin="149770000t" end="180000000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				<span>chicken chiken - ticks format</span>
+			</p>
+		</div>
+		<div>
+			<p begin="180000000t" end="211640000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				<span>lore ipsum</span>
+			</p>
+		</div>
+		<div>
+			<p begin="211640000t" end="253360000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				sample <span>data</span>
+			</p>
+		</div>
+		<div>
+			<p begin="253360000t" end="285170000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				chicken chicken
+			</p>
+		</div>
+		<div>
+			<p begin="285170000t" end="302980000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				lore ipsum
+			</p>
+		</div>
+		<div>
+			<p begin="302980000t" end="340000000t" tts:origin="10% 50%" tts:extent="80% 80%" tts:textAlign="center">
+				<span>sample data</span>
+			</p>
+		</div>
+	</body>
+</tt>
