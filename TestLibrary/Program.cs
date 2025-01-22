@@ -32,6 +32,7 @@ namespace TestLibrary
 			while (true) 
             {
 				string[] allFiles = BrowseTestSubtitlesFiles();
+				_logger.LogInformation("----------------------");
 				foreach (string file in allFiles)
 				{
 					string fileName = Path.GetFileName(file);
@@ -54,8 +55,15 @@ namespace TestLibrary
 								// We assume here that the first subtitle time can start at 0 and still be valid
 								SubtitleModel firstSubtitle = parserResultModel.Subtitles.First();
 								if (firstSubtitle.StartTime < 0 || firstSubtitle.EndTime <= 0) invalidSubtitles++;
-								// Check the rest of the subtitles
-								invalidSubtitles += parserResultModel.Subtitles.Skip(1).Count(it => it.StartTime <= 0 || it.EndTime <= 0);
+								// Check the rest of the subtitles except the last one
+								invalidSubtitles += parserResultModel.Subtitles.Skip(1).SkipLast(1).Count(it => it.StartTime <= 0 || it.EndTime <= 0);
+								// Verify the last subtitle
+								SubtitleModel lastSubtitle = parserResultModel.Subtitles.Last();
+								if (lastSubtitle.StartTime <= 0 || lastSubtitle.EndTime <= 0) 
+								{
+									invalidSubtitles++;
+									if (lastSubtitle.EndTime <= 0) _logger.LogWarning("Last subtitle end time was <= 0, this could be normal depending of the file format, but can also indicate a issue with the parser.");
+								}
 
 								int invalidSubtitlesPercent = (invalidSubtitles * 100) / parserResultModel.Subtitles.Count;
 								_logger.LogInformation("Parsing of file {fileName}: SUCCESS ({itemsCount} items - {invalidPercent}% time corrupted)", fileName, parserResultModel.Subtitles.Count, invalidSubtitlesPercent);

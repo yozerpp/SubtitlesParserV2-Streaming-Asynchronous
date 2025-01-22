@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Web;
 using SubtitlesParserV2.Models;
 
@@ -80,7 +78,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					if (item.StartTime == 0 && item.EndTime == 0)
 					{
 						// Verify if current line is a timecode line
-						var success = TryParseTimecodeLine(line, out int startTc, out int endTc);
+						bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
 						if (success)
 						{
 							// Set current item time

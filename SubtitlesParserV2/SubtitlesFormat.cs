@@ -11,6 +11,7 @@ namespace SubtitlesParserV2
     public enum SubtitleFormatType
 	{
 		SubRip,
+		LRC,
 		MicroDvd,
 		SubViewer,
 		SubStationAlpha,
@@ -70,6 +71,7 @@ namespace SubtitlesParserV2
 		public static readonly Dictionary<SubtitleFormatType, SubtitleFormat> Formats = new Dictionary<SubtitleFormatType, SubtitleFormat>()
 		{
 			{ SubtitleFormatType.SubRip, new SubtitleFormat("SubRip", new string[] {"srt"}, new SrtParser()) },
+			{ SubtitleFormatType.LRC, new SubtitleFormat("LRC", new string[] {"lrc"}, new LrcParser()) },
 			{ SubtitleFormatType.MicroDvd, new SubtitleFormat("MicroDvd", new string[] {"sub"}, new MicroDvdParser()) },
 			{ SubtitleFormatType.SubViewer, new SubtitleFormat("SubViewer", new string[] {"sbv"}, new SubViewerParser()) },
 			{ SubtitleFormatType.SubStationAlpha, new SubtitleFormat("SubStationAlpha", new string[] {"ssa", "ass"}, new SsaParser()) },
