@@ -2,7 +2,7 @@
 Universal subtitles parser which aims at supporting **parsing** for all subtitle formats.
 For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/Category:Subtitle_file_formats
 > [!NOTE]
-> This is a fork/continuation of the original [SubtitlesParser](https://github.com/AlexPoint/SubtitlesParser) that seems to be a bit outdated / not updated anymore on nuget. Since I needed to parse subtitles in one of my projects, I decided to take this existing library, update the dependencies, and rewrite some parts of it in my own way at the same time.
+> This is a fork/continuation of the original [SubtitlesParser](https://github.com/AlexPoint/SubtitlesParser) that seems to be a bit outdated / not updated anymore on nuget. Since I needed to parse subtitles in one of my projects, I decided to take this existing library, update the dependencies, and rewrite some parts of it in my own way at the same time, fixing / improving some parsers.
 
 For now, 7 different formats are supported for parsing:
 * MicroDvd	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/MicroDvdParser.cs
@@ -14,12 +14,9 @@ For now, 7 different formats are supported for parsing:
 * Youtube specific XML format	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/YtXmlFormatParser.cs
 
 ### Quickstart
-
-You can check the Test project for subtitles files and more sample codes.
-
 #### Universal parser
 
-If you don't specify the subtitle format, the SubtitlesParser will try all the registered parsers (7 for now)
+If you don't specify the subtitle format, the SubtitlesParser will try all the registered parsers with the default configuration
 
 ```csharp
 var parser = new SubtitlesParser.Classes.Parsers.SubParser();
@@ -39,25 +36,14 @@ using (var fileStream = File.OpenRead(pathToSrtFile)){
 	var items = parser.ParseStream(fileStream);
 }
 ```
-
-#### Specific writer 
-
-You can use a specific writer to write a List of SubtitleItems to a stream.
-```csharp
-var writer = new SubtitlesParser.Classes.Writers.SrtWriter();
-using (var fileStream = File.OpenWrite(pathToSrtFile)) {
-	writer.WriteStream(fileStream, yourListOfSubtitleItems);
-}
-Async versions are also available (ie `writer.WriteStreamAsync(fileStream, yourListOfSubtitleItems);` instead). 
-
-```
 ## Licenses / Acknowledgements
 **Current code** is licensed under the **GNU Lesser General Public License v3.0** (LGPLv3).
 > [!TIP]
 > While this is not legal advice, a common misconception is that the [LGPL license](https://choosealicense.com/licenses/lgpl-3.0/), due to having "GPL" in its name, requires you to license your program under the GPL or the same license. This is not necessarily true. Since this project is a library,
 > the requirements depend on how you use the library and the compatibility between this project's license and your project's license. However, please note that this tip does not override the specific requirements of the LGPL license. There may be
-> additional obligations based on your use case. For further clarification, you can refer to the [LGPL FAQ about static vs dynamic linking requirements](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic) and this [Reddit post](https://www.reddit.com/r/rust/comments/fevz37/comment/fjsg393/).
-⚠️ **Original version** [available here](https://github.com/AlexPoint/SubtitlesParser) is licensed under the original project made by AlexPoint, license/credits:
+> additional obligations based on your use case. For further clarification, you can refer to the [LGPL FAQ about static vs dynamic linking requirements](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic), this [Reddit post](https://www.reddit.com/r/rust/comments/fevz37/comment/fjsg393/), or this [blog post](https://coding.abel.nu/2016/10/the-lgpl-license/#:~:text=LGPL%20is%20not%20%E2%80%9Ccontagious%E2%80%9D%20in,affects%20the%20component%20under%20LGPL.). **Again**, **this is not legal advice**.
+
+⚠️ The **original version**, [available here](https://github.com/AlexPoint/SubtitlesParser/tree/3e3b97409481dccaa5bb96391d1c066cf0f2dfef), is licensed under the original project made by AlexPoint, license/credits:
 ```
 The MIT License (MIT)
 
