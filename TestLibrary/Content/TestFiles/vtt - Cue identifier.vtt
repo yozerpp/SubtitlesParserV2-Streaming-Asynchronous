@@ -1,23 +1,30 @@
 WEBVTT
 
+1
 00:00.000 --> 00:00.500
 Created with SAMPLE
 
+2 My 2e cue identifier
 00:14.977 --> 00:17.520
-chicken &amp; chiken
+chicken chiken
 
+3 third identifier name
 00:18.020 --> 00:20.664
 lore ipsum
 
+4
 00:21.164 --> 00:24.836
 sample data
 
+5 another identifier
 00:25.336 --> 00:28.017
 chicken chicken
 
+6
 00:28.517 --> 00:29.798
 lore ipsum
 
+7
 00:30.298 --> 00:40.324
 sample data
 

@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using SubtitlesParserV2.Models;
 
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for the .vtt subtitles files. Does not handle formatting tags within the text; that has to be parsed separately.
+	/// Parser for the .vtt subtitles files. Does not handle formatting tags within the text.
 	///
 	/// A .vtt file looks like:
 	/// WEBVTT
@@ -24,6 +25,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 00:00:15.000 --> 00:00:18.000
 	/// At the left we can see...
 	/// Docs : https://www.w3.org/TR/webvtt1/#file-structure
+	/// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API/Web_Video_Text_Tracks_Format#cue_payload_text_tags
 	/// </summary>
 	internal class VttParser : ISubtitlesParser
 	{
@@ -88,8 +90,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 					}
 					else
 					{
-						// Add current line to item
-						item.Lines.Add(line.Trim());
+						/* Add current line to item,
+						* Decode it using html as docs recommend to html encode special characters like ">" & "<" or "&".
+						* We then remove all angle brackets and the content inside, as this is how formatting (not supported here)
+						* is done on WebVTT. This mean timed lyrics, for example karaoke-style "My <00:00:00>time<00:02:40> is up!" or
+						* text with specific style / fonts won't work.
+						*/
+						item.Lines.Add(Regex.Replace(HttpUtility.HtmlDecode(line), @"<.*?>", string.Empty).Trim());
 					}
 				}
 
@@ -121,7 +128,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// 00:00:20.000 --> 00:00:24.400
 		/// Altocumulus clouds occur between six thousand
 		///
-		/// The first line is optional, as well as the hours in the time codes.
+		/// The first line (cue) is optional, as well as the hours in the time codes.
 		/// </summary>
 		/// <param name="reader">The textreader associated with the vtt file</param>
 		/// <returns>An IEnumerable(string) object containing all the subtitle parts</returns>
@@ -132,9 +139,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			while (line != null)
 			{
+				// Verify if it's the end of the current part (new empty line)
 				if (string.IsNullOrEmpty(line.Trim()))
 				{
-					// return only if not empty
+					// Return if the string builder has text, else do nothing
 					string res = sb.ToString().TrimEnd();
 					if (!string.IsNullOrEmpty(res))
 					{
@@ -142,7 +150,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					}
 					sb = new StringBuilder();
 				}
-				else
+				else // Still inside the part, save the content
 				{
 					sb.AppendLine(line);
 				}

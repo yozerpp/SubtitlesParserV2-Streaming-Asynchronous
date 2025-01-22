@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:00,500
+{b}Created{/b} with SAMPLE
+{i}www.example.com{/i}
+
+2
+00:00:14,977 --> 00:00:17,520
+chicken {b}chiken
+new line!{/b}
+
+3
+00:00:18,020 --> 00:00:20,664
+lore <i>ipsum</i>
+
+4
+00:00:21,164 --> 00:00:24,836
+<font color="#fbff1c">sample
+data</font>
+
+5
+00:00:25,336 --> 00:00:28,017
+chicken chicken
+
+6
+00:00:28,517 --> 00:00:29,798
+lore ipsum
+
+7
+00:00:30,298 --> 00:00:40,482
+sample data
+

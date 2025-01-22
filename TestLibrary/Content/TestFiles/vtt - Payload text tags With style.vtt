@@ -1,0 +1,28 @@
+WEBVTT
+
+STYLE
+::cue(.myclass) {
+  color: green;
+}
+
+00:00.000 --> 00:00.500
+Created with <00:00.200>SAMPLE
+
+00:14.977 --> 00:17.520
+chicken <00:15.400>chiken<00:16.800> potato
+
+00:18.020 --> 00:20.664
+<u>lore ipsum</u>
+
+00:21.164 --> 00:24.836
+<v Bob>sample data</v>
+
+00:25.336 --> 00:28.017
+<lang en-US>chicken chicken</lang>
+
+00:28.517 --> 00:29.798
+<c.myclass>lore ipsum</c>
+
+00:30.298 --> 00:40.324
+sample data
+

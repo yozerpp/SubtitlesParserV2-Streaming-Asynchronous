@@ -10,13 +10,14 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// A parser for the SubStation Alpha subtitles format.
+	/// A parser for the SubStation Alpha subtitles format. .ass and .ssa
 	/// See http://en.wikipedia.org/wiki/SubStation_Alpha for complete explanations.
 	/// Ex:
 	/// [Script Info]
 	/// ; This is a Sub Station Alpha v4 script.
 	/// ; For Sub Station Alpha info and downloads,
 	/// ; go to http://www.eswat.demon.co.uk/ (https://wiki.videolan.org/SubStation_Alpha/)
+	/// ; http://www.tcax.org/docs/ass-specs.htm (format spec => https://web.archive.org/web/20000618130810/http://www.eswat.demon.co.uk/downloads/format.zip)
 	/// Title: Neon Genesis Evangelion - Episode 26 (neutral Spanish)
 	/// Original Script: RoRo
 	/// Script Updated By: version 2.8.01

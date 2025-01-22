@@ -1,10 +1,14 @@
 WEBVTT
 
+NOTE This is a multi-line note block.
+These are used for comments by the author
+Cue blocks are defined below.
+
 00:00.000 --> 00:00.500
 Created with SAMPLE
 
 00:14.977 --> 00:17.520
-chicken &amp; chiken
+chicken chiken
 
 00:18.020 --> 00:20.664
 lore ipsum

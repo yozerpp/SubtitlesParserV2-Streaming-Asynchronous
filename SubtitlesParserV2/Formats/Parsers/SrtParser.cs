@@ -10,6 +10,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
 	/// Parser for the .srt subtitles files
+	/// https://en.wikipedia.org/wiki/SubRip
+	/// https://docs.fileformat.com/video/srt/
 	/// 
 	/// A .srt file looks like:
 	/// 1
