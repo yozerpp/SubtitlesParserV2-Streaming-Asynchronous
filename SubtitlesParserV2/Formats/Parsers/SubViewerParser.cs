@@ -9,7 +9,8 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for SubViewer .sub subtitles files
+	/// Parser for SubViewer .sbv subtitles files
+	/// Support: SubViewer1 and SubViewer2
 	/// 
 	/// [INFORMATION]
 	/// ....
@@ -20,16 +21,19 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 00:05:00.19,00:05:03.47
 	/// M. Franklin,[br]are you crazy?
 	/// 
-	/// see https://en.wikipedia.org/wiki/SubViewer
+	/// see https://wiki.videolan.org/SubViewer/
+	/// https://docs.fileformat.com/settings/sbv/
 	/// </summary>
 	internal class SubViewerParser : ISubtitlesParser
 	{
 		// Properties ----------------------------------------------------------
 
-		private const string FirstLine = "[INFORMATION]";
+		private const string SubViewer1InfoHeader = "[INFORMATION]";
+		private const string SubViewer1SubtitleHeader = "[SUBTITLE]";
+		private const string SubViewer2NewLine = "[br]";
 		private const short MaxLineNumberForItems = 20;
 
-		private static readonly Regex _timestampRegex = new Regex(@"\d{2}:\d{2}:\d{2}\.\d{2},\d{2}:\d{2}:\d{2}\.\d{2}", RegexOptions.Compiled);
+		private static readonly Regex _timestampRegex = new Regex(@"\d{1,6}:\d{2}:\d{2}\.\d{2,10},\d{1,6}:\d{2}:\d{2}\.\d{2,10}", RegexOptions.Compiled);
 		private const char TimecodeSeparator = ',';
 
 		// Methods -------------------------------------------------------------
@@ -41,21 +45,24 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Create a StreamReader & configure it to leave the main stream open when disposing
 			using StreamReader reader = new StreamReader(subStream, encoding, true, 1024, true);
 
-			// Ensure the first line match a .sub file format
-			string? firstLine = reader.ReadLine();
-			if (firstLine == FirstLine)
+			// Ensure the first line match a .sbv file format for SubViewer1 (optional info header / subtitle header)
+			// or SubViewer2 (timestamp)
+			string? line = reader.ReadLine() ?? string.Empty;
+			int lineNumber = 1;
+			if (line.Equals(SubViewer1InfoHeader) || line.Equals(SubViewer1SubtitleHeader) || IsTimestampLine(line))
 			{
-				string? line = reader.ReadLine();
-				int lineNumber = 2;
-				// Read the stream until max number of lines is read or if the line is a timestamp line
+				// Read the stream until hard-coded max number of lines is read (Prevent infinite loop with SubViewer1)
+				// or if the line is a timestamp line. The loop search the first timestamp for SubViewer1, in SubViewer2, the loop
+				// should not run as the first line is already a timestamp.
 				while (line != null && lineNumber <= MaxLineNumberForItems && !IsTimestampLine(line))
 				{
 					line = reader.ReadLine();
 					lineNumber++;
 				}
 
-				// first relevant line should be a timecode
-				if (line != null && lineNumber <= MaxLineNumberForItems && IsTimestampLine(line))
+				// Here, the line is a timestamp line (due to our previous loop), except it we exceded the hard-coded
+				// max number of lines read for SubViewer1
+				if (line != null && lineNumber <= MaxLineNumberForItems)
 				{
 					// Store final subtitles
 					List<SubtitleModel> items = new List<SubtitleModel>();
@@ -98,8 +105,18 @@ namespace SubtitlesParserV2.Formats.Parsers
 							}
 							else
 							{
+								/* SubViewer2 uses "[br]" to define new lines, so line = multiple lines
+								* SubViewer1 used to separate the lines in the file, so line = unique line
+								*/
 								// Store the text line
-								textLines.Add(line);
+								if (line.Contains(SubViewer2NewLine)) // SubViewer2
+								{
+									textLines.AddRange(line.Split(SubViewer2NewLine).Select(realLine => realLine.Trim()));
+								}
+								else // SubViewer1
+								{
+									textLines.Add(line.Trim());
+								}
 							}
 						}
 					}
