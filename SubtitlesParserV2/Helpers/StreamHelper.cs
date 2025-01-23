@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace SubtitlesParserV2.Helpers
 {
@@ -31,5 +32,20 @@ namespace SubtitlesParserV2.Helpers
 
             return outputStream;
         }
+
+        /// <summary>
+        /// Method that verify if a given stream is readable and seekable.
+        /// Throw a exception if it is not readable or seekable.
+        /// </summary>
+        /// <param name="stream">The stream to verify</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void ThrowIfStreamIsNotSeekableOrReadable(Stream stream) 
+        {
+			// test if stream if readable and seekable (just a check, should be good)
+			if (!stream.CanRead || !stream.CanSeek)
+			{
+				throw new ArgumentException($"Stream must be seekable and readable in a subtitles parser. Operation interrupted; isSeekable: {samiStream.CanSeek} - isReadable: {samiStream.CanRead}");
+			}
+		}
     }
 }

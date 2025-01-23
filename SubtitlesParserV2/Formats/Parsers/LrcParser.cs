@@ -1,4 +1,5 @@
-﻿using SubtitlesParserV2.Models;
+﻿using SubtitlesParserV2.Helpers;
+using SubtitlesParserV2.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,12 +41,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		private static readonly Regex EnhancedLrcFormatRegex = new Regex(@"<\d{2}:\d{2}\.\d{2}>", RegexOptions.Compiled);
 		public List<SubtitleModel> ParseStream(Stream lrcStream, Encoding encoding)
 		{
-			// test if stream if readable and seekable (just a check, should be good)
-			if (!lrcStream.CanRead || !lrcStream.CanSeek)
-			{
-				throw new ArgumentException($"Stream must be seekable and readable in a subtitles parser. Operation interrupted; isSeekable: {lrcStream.CanSeek} - isReadable: {lrcStream.CanRead}");
-			}
-
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(lrcStream);
 			// seek the beginning of the stream
 			lrcStream.Position = 0;
 
@@ -81,7 +77,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 						});
 					}
 					lastLine = nextLine; // Put our current line into the lastLine before starting the loop again
-				} else if (nextLine == null && lastLine != null) // If we reached the end of the file, there is only "lastLine" that need to be added
+				} else if (nextLine == null && lastLine != null) // If we reached the end of the file, there is only "lastLine" that need to be added to items
 				{
 					// Last line start time
 					int? lrcLastLineTimeMs = ParseLrcTime(lastLine);

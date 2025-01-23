@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 
 namespace SubtitlesParserV2.Formats.Parsers
@@ -34,12 +35,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream srtStream, Encoding encoding)
 		{
-			// test if stream if readable and seekable (just a check, should be good)
-			if (!srtStream.CanRead || !srtStream.CanSeek)
-			{
-				throw new ArgumentException($"Stream must be seekable and readable in a subtitles parser. Operation interrupted; isSeekable: {srtStream.CanSeek} - isReadable: {srtStream.CanRead}");
-			}
-
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(srtStream);
 			// seek the beginning of the stream
 			srtStream.Position = 0;
 

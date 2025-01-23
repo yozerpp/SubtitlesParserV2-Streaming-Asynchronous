@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 
 namespace SubtitlesParserV2.Formats.Parsers
@@ -40,6 +41,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)
 		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
 			// seek the beginning of the stream
 			subStream.Position = 0;
 			// Create a StreamReader & configure it to leave the main stream open when disposing

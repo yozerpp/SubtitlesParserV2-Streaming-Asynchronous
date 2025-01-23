@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
+using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Logger;
 using SubtitlesParserV2.Models;
 
@@ -23,8 +24,9 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream xmlStream, Encoding encoding)
         {
-            // rewind the stream
-            xmlStream.Position = 0;
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(xmlStream);
+			// seek the beginning of the stream
+			xmlStream.Position = 0;
 			List<SubtitleModel> items = new List<SubtitleModel>();
 
             // parse xml stream
