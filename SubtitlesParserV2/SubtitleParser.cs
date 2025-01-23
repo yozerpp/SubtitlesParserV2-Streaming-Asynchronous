@@ -48,12 +48,12 @@ namespace SubtitlesParserV2
 		/// </remarks>
 		/// <param name="stream">The stream</param>
 		/// <param name="encoding">The encoding</param>
-		/// <param name="selectedFormats">If specified, will only try the selected parsers.</param>
+		/// <param name="selectedFormat">If specified, will only try the selected parsers.</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat)
+		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat, bool? ignoreException = true)
 		{
-			return ParseStream(stream, encoding, new SubtitleFormatType[] { selectedFormat });
+			return ParseStream(stream, encoding, new SubtitleFormatType[] { selectedFormat }, ignoreException ?? true);
 		}
 
 		/// <summary>

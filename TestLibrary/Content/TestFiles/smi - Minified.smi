@@ -1,0 +1,25 @@
+<SAMI>
+<HEAD>
+<TITLE>SMI Example Minified</TITLE>
+<SAMIParam>
+  Metrics {time:ms;}
+  Spec {MSFT:1.0;}
+</SAMIParam>
+<STYLE TYPE="text/css">
+<!--
+  P { font-family: Arial; font-weight: normal; color: white; background-color: black; text-align: center; }
+  .ENUSCC { name: English; lang: en-US ; SAMIType: CC ; }
+-->
+</STYLE>
+</HEAD>
+<BODY>
+<-- This is a comment, this file is a SMI minified, where SYNC blocks and P element are on the same line. -->
+<-- Open play menu, choose Captions and Subtitles, On if available -->
+<SYNC Start=300><P Class=ENUSCC>This text,</P></SYNC>
+<SYNC Start=1290><P Class=ENUSCC>is a template.</P></SYNC>
+<SYNC Start=2250><P Class=ENUSCC>It&#039;s supposed to be</P></SYNC>
+<SYNC Start=3010><P Class=ENUSCC>well formated.</P></SYNC>
+<SYNC Start=3840><P Class=ENUSCC>Have a nice day</P></SYNC>
+<SYNC Start=4840><P Class=ENUSCC>&nbsp;...</P></SYNC>
+</BODY>
+</SAMI>
