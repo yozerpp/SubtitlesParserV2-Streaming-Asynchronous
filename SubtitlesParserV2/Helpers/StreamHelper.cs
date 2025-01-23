@@ -44,7 +44,7 @@ namespace SubtitlesParserV2.Helpers
 			// test if stream if readable and seekable (just a check, should be good)
 			if (!stream.CanRead || !stream.CanSeek)
 			{
-				throw new ArgumentException($"Stream must be seekable and readable in a subtitles parser. Operation interrupted; isSeekable: {samiStream.CanSeek} - isReadable: {samiStream.CanRead}");
+				throw new ArgumentException($"Stream must be seekable and readable in a subtitles parser. Operation interrupted; isSeekable: {stream.CanSeek} - isReadable: {stream.CanRead}");
 			}
 		}
     }
