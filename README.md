@@ -4,37 +4,76 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 > [!NOTE]
 > This is a fork/continuation of the original [SubtitlesParser](https://github.com/AlexPoint/SubtitlesParser) that seems to be a bit outdated / not updated anymore on nuget. Since I needed to parse subtitles in one of my projects, I decided to take this existing library, update the dependencies, and rewrite some parts of it in my own way at the same time, fixing / improving some parsers.
 
-For now, 7 different formats are supported for parsing:
-* MicroDvd	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/MicroDvdParser.cs
-* SubRip	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/SrtParser.cs
-* SubStationAlpha	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/SsaParser.cs
-* SubViewer	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/SubViewerParser.cs
-* TTML	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/TtmlParser.cs
-* WebVTT	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/VttParser.cs
-* Youtube specific XML format	https://github.com/AlexPoint/SubtitlesParser/blob/master/SubtitlesParser/Classes/Parsers/YtXmlFormatParser.cs
+## Supported Parsers/Writers
+| Subtitle Format                        | Parser | Writer | Extensions Detection            |
+|-----------------------------------------|:------:|:------:|--------------------------------|
+| SubRip                                  | ✅     | ❌     | `.srt`                         |
+| LRC                                     | ✅     | ❌     | `.lrc`                         |
+| MicroDvd                                | ✅     | ❌     | `.sub`                         |
+| SubViewer                               | ✅     | ❌     | `.sbv`                         |
+| SubStationAlpha                         | ✅     | ❌     | `.ssa`, `.ass`                  |
+| TTML                                    | ✅     | ❌     | `.ttml`                         |
+| WebVTT                                  | ✅     | ❌     | `.vtt`                          |
+| Synchronized Accessible Media Interchange (SAMI) | ✅ | ❌     | `.smi`, `.sami`                 |
+| YouTube Timed Text (YoutubeXml)         | ✅     | ❌     | `.ytt`, `.srv3`, `.srv2`, `.srv1` |
 
 ### Quickstart
 #### Universal parser
 
-If you don't specify the subtitle format, the SubtitlesParser will try all the registered parsers with the default configuration
+If you don't specify the subtitle format, the SubtitlesParserV2 will try all the registered parsers with the default configuration
 
 ```csharp
-var parser = new SubtitlesParser.Classes.Parsers.SubParser();
-using (var fileStream = File.OpenRead(pathToSrtFile)){
-	var items = parser.ParseStream(fileStream);
+using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
+	// Try to parse with all supported parsers
+	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8)
+	// Access the Subtitles with result.Subtitles
+	// Note that if all parsers fail, the method will throw a ArgumentException
 }
 ```
 
-#### Specific parser
-
-You can use a specific parser if you know the format of the files you parse.
-For example, for parsing an srt file:
+#### Get Subtitle format by extension (Extensions detection)
 
 ```csharp
-var parser = new SubtitlesParser.Classes.Parsers.SrtParser();
-using (var fileStream = File.OpenRead(pathToSrtFile)){
-	var items = parser.ParseStream(fileStream);
+string fileName = Path.GetFileName(file);
+// Get format enum
+SubtitleFormatType? mostLikelyFormat = SubtitleFormat.GetFormatTypeByFileExtensionName(Path.GetExtension(fileName).Replace(".",""));
+// Get format instance
+if (mostLikelyFormat != null) 
+{
+	SubtitleFormat format = SubtitleFormat.GetFormat(mostLikelyFormat.Value);
+	Console.WriteLine($"Matching format is : {format.Name}");
 }
+```
+
+#### Specific parser (default configuration)
+
+You can use a specific parser if you know the format of the files you parse.
+
+```csharp
+using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
+	// Try to parse with a specific parser using default configuration
+	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, SubtitleFormatType.SubStationAlpha)
+	// Try to parse with a multiple parser using default configuration
+	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, new[] { SubtitleFormatType.SubStationAlpha, SubtitleFormatType.LRC });
+}
+```
+#### Specific parser (Advanced configuration)
+
+You can also specify advanced configurations for parsers that support it.
+>[!NOTE]
+> This is not supported inside `SubtitleParser.ParseStream` methods.
+
+```csharp
+// Get the format
+SubtitleFormat format = SubtitleFormat.GetFormat(SubtitleFormatType.MicroDvd);
+// Get the instance as a advanced parser
+ISubtitlesParser<MicroDvdParserConfig> microDvdParserInstance = format.ParserInstance as ISubtitlesParser<MicroDvdParserConfig>;
+// Parse
+microDvdParserInstance.ParseStream(fileStream, Encoding.UTF8, new MicroDvdParserConfig() 
+{
+	Framerate = 30, // Force the parser to use a framerate of 30
+});
+
 ```
 ## Licenses / Acknowledgements
 **Current code** is licensed under the **GNU Lesser General Public License v3.0** (LGPLv3).
