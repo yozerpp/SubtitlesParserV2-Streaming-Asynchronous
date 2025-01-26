@@ -1,4 +1,4 @@
-[![NuGet Build Workflow](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml/badge.svg?branch=main)](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml) [![NuGet Version](https://img.shields.io/nuget/v/SubtitlesParserV2)](https://www.nuget.org/packages/SubtitlesParserV2/)
+[![Publish to NuGet Gallery](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml/badge.svg)](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml) [![NuGet Version](https://img.shields.io/nuget/v/SubtitlesParserV2)](https://www.nuget.org/packages/SubtitlesParserV2/)
 ## SubtitlesParserV2
 Universal subtitles parser which aims at supporting **parsing** for all subtitle formats.
 For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/Category:Subtitle_file_formats
@@ -76,6 +76,26 @@ microDvdParserInstance.ParseStream(fileStream, Encoding.UTF8, new MicroDvdParser
 });
 
 ```
+### Logging
+SubtitlesParserV2 implements [microsoft.extensions.logging.abstractions](https://www.nuget.org/packages/microsoft.extensions.logging.abstractions/) to allow you to redirect the log output to your own logging method (using a LoggerFactory)
+#### Base example
+```csharp
+// Assuming a LoggerFactory already exist
+ILoggerFactory existingLoggerFactory = LoggerFactory.Create(builder =>
+{
+	builder.AddConsole(); // Adding the default console logging
+});
+
+// Set SubtitlesParserV2 LoggerFactory to the existing one
+LoggerManager.LoggerFactory = existingLoggerFactory;
+```
+#### ASP.NET Core Websites
+```csharp
+// Get the app loggerFactory
+ILoggerFactory loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+LoggerManager.LoggerFactory = loggerFactory; // Redirect SubtitlesParserV2 logs to our LoggerFactory
+```
+
 ## Licenses / Acknowledgements
 **Current code** is licensed under the **GNU Lesser General Public License v3.0** (LGPLv3).
 > [!TIP]
