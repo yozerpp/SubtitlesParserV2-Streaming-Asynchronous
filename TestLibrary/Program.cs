@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using SubtitlesParserV2;
+using SubtitlesParserV2.Formats.Parsers;
 using SubtitlesParserV2.Models;
 
 namespace TestLibrary
@@ -45,10 +46,11 @@ namespace TestLibrary
 							SubtitleParserResultModel parserResultModel;
 							if (mostLikelyFormat != null) 
 							{
+								
 								// Here, we select the format with a matching file extension name
 								parserResultModel = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, mostLikelyFormat.Value);
 							} else parserResultModel = SubtitleParser.ParseStream(fileStream, Encoding.UTF8); // Try all parsers
-
+							
 							if (parserResultModel.Subtitles.Count != 0)
 							{
 								int invalidSubtitles = 0;

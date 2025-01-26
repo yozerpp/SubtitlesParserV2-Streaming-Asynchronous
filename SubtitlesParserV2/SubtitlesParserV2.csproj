@@ -14,13 +14,13 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/kitsumed/SubtitlesParserV2.git</RepositoryUrl>
     <Description>Universal subtitles parser</Description>
-    <ReleaseNotes>Universal subtitles parser</ReleaseNotes>
     <PackageReleaseNotes>Rewrote project &amp; added NET8.0 framework.</PackageReleaseNotes>
     <Copyright>Copyright (C) 2025 kitsumed (Med)</Copyright>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Nullable>enable</Nullable>
     <PackageTags>subtitles;parser</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
@@ -49,18 +49,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Formats\Writers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include LICENSE and README.md in the NuGet package -->
+    <None Include="../LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="../README.md" Pack="true" PackagePath="README.md" />
+
+    <!-- Copy LICENSE and README.md to the build output directory -->
+    <None Include="../LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="../README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
