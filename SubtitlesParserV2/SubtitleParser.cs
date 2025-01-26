@@ -28,9 +28,9 @@ namespace SubtitlesParserV2
 		/// configuration. You can get a specific instance by using <see cref="SubtitleFormat.GetFormat(SubtitleFormatType)"/>.
 		/// </remarks>
 		/// <param name="stream">The subtitle stream</param>
-		/// <returns></returns>
+		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel ParseStream(Stream stream)
+		public static SubtitleParserResultModel? ParseStream(Stream stream)
 		{
 			// we default encoding to UTF-8
 			return ParseStream(stream, Encoding.UTF8);
@@ -47,9 +47,10 @@ namespace SubtitlesParserV2
 		/// <param name="stream">The stream</param>
 		/// <param name="encoding">The encoding</param>
 		/// <param name="selectedFormat">If specified, will only try the selected parsers.</param>
+		/// <param name="ignoreException">If true (default), will ignore parsers exceptions and continue to the next one. If false, exception will be thrown,</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat, bool? ignoreException = true)
+		public static SubtitleParserResultModel? ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat, bool? ignoreException = true)
 		{
 			return ParseStream(stream, encoding, new SubtitleFormatType[] { selectedFormat }, ignoreException ?? true);
 		}
@@ -68,7 +69,7 @@ namespace SubtitlesParserV2
 		/// <param name="ignoreException">If true (default), will ignore parsers exceptions and continue to the next one. If false, exception will be thrown,</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, IEnumerable<SubtitleFormatType>? selectedFormats = null, bool ignoreException = true)
+		public static SubtitleParserResultModel? ParseStream(Stream stream, Encoding encoding, IEnumerable<SubtitleFormatType>? selectedFormats = null, bool ignoreException = true)
 		{
 			// test if stream if readable
 			if (!stream.CanRead)
@@ -121,7 +122,7 @@ namespace SubtitlesParserV2
 				// Ensure the stream copy is disposed
 				seekableStream?.Dispose();
 			}
-			throw new ArgumentException(selectedFormats != null ? $"The selected parser formats failed to parse the stream." : $"All the parsers failed to parse the stream.");
+			return null;
 		}
 	}
 }

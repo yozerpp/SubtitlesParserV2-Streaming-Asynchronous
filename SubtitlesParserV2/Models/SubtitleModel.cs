@@ -12,12 +12,12 @@ namespace SubtitlesParserV2.Models
         //Properties------------------------------------------------------------------
 
         /// <summary>
-        /// Start time in milliseconds.
+        /// Start time in milliseconds. -1 if not found.
         /// </summary>
         public int StartTime { get; set; }
 
         /// <summary>
-        /// End time in milliseconds.
+        /// End time in milliseconds. -1 if not found.
         /// </summary>
         public int EndTime { get; set; }
 
@@ -38,9 +38,11 @@ namespace SubtitlesParserV2.Models
         }
 
 
-        // Methods --------------------------------------------------------------------------
-        // Show the subtitle values
-        public override string ToString()
+
+		// Methods --------------------------------------------------------------------------
+		// Show the subtitle values
+		/// <inheritdoc/>
+		public override string ToString()
         {
             TimeSpan startTime = new TimeSpan(0, 0, 0, 0, StartTime);
             TimeSpan endTime = new TimeSpan(0, 0, 0, 0, EndTime);

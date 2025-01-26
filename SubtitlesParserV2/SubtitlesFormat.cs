@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#pragma warning disable CS1591
 namespace SubtitlesParserV2
 {
     /// <summary>
@@ -136,7 +137,7 @@ namespace SubtitlesParserV2
 		/// <summary>
 		/// Get the <see cref="SubtitleFormatType"/> of your <see cref="SubtitleFormat"/> instance.
 		/// </summary>
-		/// <param name="name">The file extension name (Ex: SubRip, MicroDvd, WebVTT)</param>
+		/// <param name="SubtitleFormat">The subtitle format instance</param>
 		/// <returns>The SubtitleFormatType if your instance</returns>
 		// Compare both string, ignoring upper and lowercase
 		public static SubtitleFormatType GetFormatTypeSubtitleFromFormatInstance(SubtitleFormat SubtitleFormat) => Formats.First(format => SubtitleFormat == format.Value).Key;
@@ -155,7 +156,7 @@ namespace SubtitlesParserV2
 		/// Get the instance of a specific <see cref="SubtitleFormat"/> by selecting a <see cref="SubtitleFormatType"/>.
 		/// Can handle multiple <see cref="SubtitleFormatType"/>.
 		/// </summary>
-		/// <param name="formatType">The format you want</param>
+		/// <param name="formatsType">The formats you want</param>
 		/// <returns>The SubtitleFormat</returns>
 		public static IEnumerable<SubtitleFormat> GetFormat(IEnumerable<SubtitleFormatType> formatsType)
 		{
