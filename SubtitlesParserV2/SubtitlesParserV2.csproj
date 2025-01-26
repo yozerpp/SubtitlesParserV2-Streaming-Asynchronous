@@ -24,6 +24,7 @@ Added SAMI parser.</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <PackageTags>subtitles;parser</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
