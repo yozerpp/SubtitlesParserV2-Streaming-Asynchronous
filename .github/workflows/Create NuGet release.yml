@@ -7,7 +7,7 @@ on:
 env:
   PROJECT_PATH: SubtitlesParserV2/SubtitlesParserV2.csproj
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
-  NUGET_SOURCE_URL: "https://apiint.nugettest.org/v3/index.json"
+  NUGET_SOURCE_URL: "https://api.nuget.org/v3/index.json"
 
 jobs:
   publish:
