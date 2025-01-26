@@ -14,7 +14,10 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/kitsumed/SubtitlesParserV2.git</RepositoryUrl>
     <Description>Universal subtitles parser</Description>
-    <PackageReleaseNotes>Rewrote project &amp; added NET8.0 framework.</PackageReleaseNotes>
+    <PackageReleaseNotes>Rewrote project (Improved parsers).
+Added NET8.0 framework.
+Added LRC parser.
+Added SAMI parser.</PackageReleaseNotes>
     <Copyright>Copyright (C) 2025 kitsumed (Med)</Copyright>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
