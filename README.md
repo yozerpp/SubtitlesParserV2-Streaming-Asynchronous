@@ -1,3 +1,4 @@
+[![NuGet Build Workflow](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml/badge.svg?branch=main)](https://github.com/kitsumed/SubtitlesParserV2/actions/workflows/Create%20NuGet%20release.yml) [![NuGet Version](https://img.shields.io/nuget/v/SubtitlesParserV2)](https://www.nuget.org/packages/SubtitlesParserV2/)
 ## SubtitlesParserV2
 Universal subtitles parser which aims at supporting **parsing** for all subtitle formats.
 For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/Category:Subtitle_file_formats
