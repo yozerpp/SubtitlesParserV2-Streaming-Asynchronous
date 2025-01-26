@@ -19,17 +19,17 @@ namespace SubtitlesParserV2.Logger
         /// </summary>
         /// <param name="loggerName">Name of the logger</param>
         /// <returns>A <see cref="ILogger"/> instance</returns>
-        public static ILogger GetLogger(string loggerName)
+        internal static ILogger GetLogger(string loggerName)
         {
             return LoggerFactory?.CreateLogger(loggerName) ?? NullLogger.Instance;
         }
 
-        /// <summary>
-        /// Get a logger with the name of the current class
-        /// </summary>
-        /// <param name="currentClass">The class that will use the logger</param>
-        /// <returns>A <see cref="ILogger"/> instance</returns>
-        public static ILogger GetCurrentClassLogger(this object currentClass)
+		/// <summary>
+		/// Get a logger with the name of the current class
+		/// </summary>
+		/// <param name="currentClass">The class that will use the logger</param>
+		/// <returns>A <see cref="ILogger"/> instance</returns>
+		internal static ILogger GetCurrentClassLogger(this object currentClass)
         {
             return GetLogger(currentClass.GetType()?.FullName ?? currentClass.GetType().Name);
         }
