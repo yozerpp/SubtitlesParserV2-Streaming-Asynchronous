@@ -14,10 +14,8 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/kitsumed/SubtitlesParserV2.git</RepositoryUrl>
     <Description>Universal subtitles parser</Description>
-    <PackageReleaseNotes>Rewrote project (Improved parsers).
-Added NET8.0 framework.
-Added LRC parser.
-Added SAMI parser.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed issue where some of the logger methods where not defined as internal.
+Now including XML comments, allowing intellisense to show methods definitions.</PackageReleaseNotes>
     <Copyright>Copyright (C) 2025 kitsumed (Med)</Copyright>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
