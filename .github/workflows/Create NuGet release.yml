@@ -26,7 +26,7 @@ jobs:
         run: dotnet restore "${{ env.PROJECT_PATH }}"
         
       - name: "Build project"
-        run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore --configuration Release
+        run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore --configuration Release -p:Version=${{ github.event.release.tag_name }} -p:FileVersion=${{ github.event.release.tag_name }}
         
       - name: "Pack project"
         run: dotnet pack "${{ env.PROJECT_PATH }}" -p:PackageVersion=${{ github.event.release.tag_name }} --no-restore --no-build --configuration Release --output "${{ env.PACKAGE_OUTPUT_DIRECTORY }}"
