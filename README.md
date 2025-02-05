@@ -26,9 +26,9 @@ If you don't specify the subtitle format, the SubtitlesParserV2 will try all the
 ```csharp
 using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
 	// Try to parse with all supported parsers
-	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8)
+	SubtitleParserResultModel? result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8)
 	// Access the Subtitles with result.Subtitles
-	// Note that if all parsers fail, the method will throw a ArgumentException
+	// Note that if all parsers fail, the method will return null
 }
 ```
 
