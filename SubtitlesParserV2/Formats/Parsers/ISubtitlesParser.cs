@@ -26,7 +26,19 @@ namespace SubtitlesParserV2.Formats.Parsers
 	}
 
 	/// <summary>
-	/// Interface specifying the required method for a Parser with a additional <see cref="TConfig"/> for parsers that require additional configuration.
+	/// Interface for parsers with a option for additional configuration.
+	/// <para>
+	/// Example:
+	/// <code>
+	/// <![CDATA[
+	/// // Get the format
+	/// SubtitleFormat format = SubtitleFormat.GetFormat(SubtitleFormatType.MicroDvd);
+	/// // Get the instance as a advanced parser
+	/// ISubtitlesParser<MicroDvdParserConfig> microDvdParserInstance = format.ParserInstance as ISubtitlesParser<MicroDvdParserConfig>;
+	/// ]]>
+	/// </code>
+	/// Now ensure <strong>microDvdParserInstance</strong> is not null (in case your ParserInstance does not support <![CDATA[ISubtitlesParser<TConfig>)]]>
+	/// </para>
 	/// </summary>
 	public interface ISubtitlesParser<TConfig> // where TConfig : class // Restrict TConfig to a class type to allow it to be a nullable Type
 	{
@@ -35,6 +47,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </summary>
 		/// <param name="stream">The subtitles file stream to parse</param>
 		/// <param name="encoding">The stream encoding (if known)</param>
+		/// <param name="configuration">The configuration for the parser.</param>
 		/// <returns>The corresponding list of SubtitleItems</returns>
 		List<SubtitleModel> ParseStream(Stream stream, Encoding encoding, TConfig configuration);
     }

@@ -11,10 +11,12 @@ namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
 	/// Parser for the .srt subtitles files
+	/// </summary>
+	/// <!--
+	/// Sources:
 	/// https://en.wikipedia.org/wiki/SubRip
 	/// https://docs.fileformat.com/video/srt/
-	/// 
-	/// A .srt file looks like:
+	/// Example:
 	/// 1
 	/// 00:00:10,500 --> 00:00:13,000
 	/// Elephant's Dream
@@ -22,7 +24,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 2
 	/// 00:00:15,000 --> 00:00:18,000
 	/// At the left we can see...[12]
-	/// </summary>
+	/// --> 
 	internal class SrtParser : ISubtitlesParser
 	{
 
@@ -108,11 +110,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <summary>
 		/// Enumerates the subtitle parts in a srt file based on the standard line break observed between them. 
 		/// A srt subtitle part is in the form:
-		/// 
+		/// <code>
 		/// 1
 		/// 00:00:20,000 --> 00:00:24,400
 		/// Altocumulus clouds occur between six thousand
-		/// 
+		/// </code>
 		/// </summary>
 		/// <param name="reader">The textreader associated with the srt file</param>
 		/// <returns>An IEnumerable(string) object containing all the subtitle parts</returns>
@@ -164,11 +166,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 		}
 
 		/// <summary>
-		/// Takes an SRT timecode as a string and parses it into a double (in seconds). A SRT timecode reads as follows: 
+		/// Takes an SRT timecode as a string and parses it into a milliseconds. A SRT timecode reads as follows: 
 		/// 00:00:20,000
 		/// </summary>
 		/// <param name="timecode">The timecode to parse</param>
-		/// <returns>The parsed timecode as a TimeSpan instance. If the parsing was unsuccessful, -1 is returned (subtitles should never show)</returns>
+		/// <returns>The parsed timecode in milliseconds. If the parsing was unsuccessful, -1 is returned</returns>
 		private static int ParseSrtTimecode(string timecode)
 		{
 			Match match = Regex.Match(timecode, "[0-9]+:[0-9]+:[0-9]+([,\\.][0-9]+)?");

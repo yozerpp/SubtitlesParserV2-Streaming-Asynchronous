@@ -10,8 +10,14 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for SubViewer .sbv subtitles files
-	/// Support: SubViewer1 and SubViewer2
+	/// Parser for SubViewer .sbv subtitles files.
+	/// <strong>Support</strong> : SubViewer1 and SubViewer2
+	/// </summary>
+	/// <!--
+	/// Sources:
+	/// https://wiki.videolan.org/SubViewer/
+	/// https://docs.fileformat.com/settings/sbv/
+	/// Example:
 	/// 
 	/// [INFORMATION]
 	/// ....
@@ -21,10 +27,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 
 	/// 00:05:00.19,00:05:03.47
 	/// M. Franklin,[br]are you crazy?
-	/// 
-	/// see https://wiki.videolan.org/SubViewer/
-	/// https://docs.fileformat.com/settings/sbv/
-	/// </summary>
+	/// -->
 	internal class SubViewerParser : ISubtitlesParser
 	{
 		// Properties ----------------------------------------------------------
@@ -86,17 +89,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 							if (IsTimestampLine(line))
 							{
 								// Get previous timestamp line time
-								(int, int) timeCodes = ParseTimecodeLine(lastTimecodeLine);
-								int start = timeCodes.Item1;
-								int end = timeCodes.Item2;
+								(int previousStart, int previousEnd) = ParseTimecodeLine(lastTimecodeLine);
 
 								// Ensure the timecode is valid and that we have at least 1 text line to add
-								if (start > 0 && end > 0 && textLines.Count >= 1)
+								if (previousStart > 0 && previousEnd > 0 && textLines.Count >= 1)
 								{
 									items.Add(new SubtitleModel()
 									{
-										StartTime = start,
-										EndTime = end,
+										StartTime = previousStart,
+										EndTime = previousEnd,
 										Lines = textLines,
 									});
 								}
@@ -126,9 +127,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					// If any text lines are left, we add them under the last known valid timecode line
 					if (textLines.Count >= 1)
 					{
-						(int, int) lastTimeCodes = ParseTimecodeLine(lastTimecodeLine);
-						int lastStart = lastTimeCodes.Item1;
-						int lastEnd = lastTimeCodes.Item2;
+						(int lastStart, int lastEnd) = ParseTimecodeLine(lastTimecodeLine);
 						if (lastStart > 0 && lastEnd > 0)
 						{
 							items.Add(new SubtitleModel()
@@ -162,39 +161,18 @@ namespace SubtitlesParserV2.Formats.Parsers
 		}
 
 		// ValueTuple
-		private static (int, int) ParseTimecodeLine(string line)
+		private static (int startTime, int endTime) ParseTimecodeLine(string line)
 		{
 			string[] parts = line.Split(TimecodeSeparator);
 			if (parts.Length == 2)
 			{
-				int start = ParseTimecode(parts[0]);
-				int end = ParseTimecode(parts[1]);
+				int start = ParserHelper.ParseTimeSpanLineAsMilliseconds(parts[0]);
+				int end = ParserHelper.ParseTimeSpanLineAsMilliseconds(parts[1]);
 				return (start, end);
 			}
 			else
 			{
 				throw new ArgumentException($"Couldn't parse the timecodes in line '{line}'.");
-			}
-		}
-
-		/// <summary>
-		/// Takes an SRT timecode as a string and parses it into a double (in seconds). A SRT timecode reads as follows: 
-		/// 00:00:20,000
-		/// </summary>
-		/// <param name="s">The timecode to parse</param>
-		/// <returns>The parsed timecode as a TimeSpan instance. If the parsing was unsuccessful, -1 is returned (subtitles should never show)</returns>
-		private static int ParseTimecode(string s)
-		{
-			TimeSpan result;
-
-			if (TimeSpan.TryParse(s, out result))
-			{
-				int nbOfMs = (int)result.TotalMilliseconds;
-				return nbOfMs;
-			}
-			else
-			{
-				return -1;
 			}
 		}
 

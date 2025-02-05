@@ -42,7 +42,7 @@ namespace TestLibrary
 						try
 						{
 							SubtitleFormatType? mostLikelyFormat = SubtitleFormat.GetFormatTypeByFileExtensionName(Path.GetExtension(fileName).Replace(".",""));
-
+							
 							SubtitleParserResultModel parserResultModel;
 							if (mostLikelyFormat != null) 
 							{

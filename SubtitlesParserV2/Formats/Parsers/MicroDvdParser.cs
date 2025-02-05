@@ -24,18 +24,23 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public float? Framerate { get; set; }
 	}
 	/// <summary>
-	/// Parser for MicroDVD .sub subtitles files
-	/// 
-	/// A .sub file looks like this:
-	/// {1}{1}29.970
-	/// {0}{180}PIRATES OF THE CARIBBEAN|English subtitlez by tHe.b0dY
-	/// {509}{629}Drink up me 'earties yo ho!
-	/// {635}{755}We kidnap and ravage and don't give a hoot.
-	/// 
-	/// We need the video frame rate to extract .sub files -> careful when using it
-	/// 
-	/// see https://en.wikipedia.org/wiki/MicroDVD
+	/// Parser for MicroDVD .sub subtitles files.
+	/// Will try to detect the framerate by default.
 	/// </summary>
+	/// <remarks>
+	/// If no framerate are found, will default to 25. To force specific settings, you can use
+	/// <see cref="SubtitleFormat.GetFormat(SubtitleFormatType)"/> and define the <see cref="SubtitleFormat.ParserInstance"/>
+	/// as a <see cref="ISubtitlesParser{MicroDvdParserConfig}"/>.
+	/// </remarks>
+	/// <!--
+	/// Sources:
+	/// https://en.wikipedia.org/wiki/MicroDVD
+	/// Example:
+	/// {1}{1}29.970
+	/// {0}{180}PIRATES OF THE WORLD|English by chicken
+	/// {509}{629}Drink up water yo ho!
+	/// {635}{755}We eat and don't give a hoot.
+	/// -->
 	internal class MicroDvdParser : ISubtitlesParser, ISubtitlesParser<MicroDvdParserConfig>
 	{
 		private static readonly Type CurrentType = typeof(MicroDvdParser);
@@ -130,10 +135,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		/// <summary>
 		/// Parses one line of the .sub file
-		/// 
-		/// ex:
-		/// {0}{180}PIRATES OF THE CARIBBEAN|English subtitlez by tHe.b0dY
 		/// </summary>
+		/// <!--
+		/// Example:
+		/// {0}{180}PIRATES OF THE WORLD|English subtitlez by chicken
+		/// -->
 		/// <param name="line">The .sub file line</param>
 		/// <param name="frameRate">The frame rate with which the .sub file was created</param>
 		/// <returns>The corresponding SubtitleItem</returns>
@@ -166,11 +172,12 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		/// <summary>
 		/// Tries to extract the frame rate from a subtitle file line.
-		/// 
-		/// Supported formats are:
-		/// - {x}{y}25
-		/// - {x}{y}{...}23.976
 		/// </summary>
+		/// <!--
+		/// Supported formats are:
+		/// {x}{y}25
+		/// {x}{y}{...}23.976
+		/// -->
 		/// <param name="text">The subtitle file line</param>
 		/// <param name="frameRate">The frame rate if we can parse it</param>
 		/// <returns>True if the parsing was successful, false otherwise</returns>

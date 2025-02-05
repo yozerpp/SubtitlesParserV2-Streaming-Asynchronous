@@ -9,12 +9,16 @@ using System.Text.RegularExpressions;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for the .lrc subtitles files
+	/// <para>Parser for the .lrc subtitles files.</para>
+	/// <para><strong>Support</strong> : Core LRC, Enhanced LRC format (A2 extension).
+	/// <strong>NOTE</strong>: Last item end time will always be -1
+	/// </para>
+	/// </summary>
+	/// 
+	/// <!--
+	/// Sources:
 	/// https://en.wikipedia.org/wiki/LRC_(file_format)
 	/// https://docs.fileformat.com/misc/lrc/
-	/// Support : Core LRC, Enhanced LRC format (A2 extension)
-	/// NOTE: Last item end time will always be -1
-	/// 
 	/// Example:
 	/// [ar:Artist performing]
 	/// [al: Album name]
@@ -30,7 +34,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// [00:28.25] Line 5 lyrics
 	/// [00:29.02] Line 6 <00:34.20>lyrics
 	/// [00:39.00] last lyrics.
-	/// </summary>
+	/// -->
 	internal class LrcParser : ISubtitlesParser
 	{
 		// Format : [0000:00.00] / [mm:ss.xx]

@@ -13,9 +13,12 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for .ttml files
-	/// Official docs: https://www.w3.org/TR/2018/REC-ttml1-20181108/#vocabulary-namespaces
+	/// Parser for .ttml files.
 	/// </summary>
+	/// <!--
+	/// Sources:
+	/// https://www.w3.org/TR/2018/REC-ttml1-20181108/#vocabulary-namespaces
+	/// -->
 	internal class TtmlParser : ISubtitlesParser
     {
 		private static readonly Type CurrentType = typeof(TtmlParser);
@@ -77,19 +80,24 @@ namespace SubtitlesParserV2.Formats.Parsers
         }
 
 		/// <summary>
-		/// Takes an TTML timecode as a string and parses it into a int (millisegonds). A TTML timecode can reads as follows: 
+		/// Takes an TTML timecode as a string and parses it into a int (millisegonds).
+		/// </summary>
+		/// <remarks>
+		/// A TTML timecode can reads as follows: 
+		/// <code>
 		/// 00:00:20,000
 		/// 79249170t (ticks version, dependant on tickRate)
-		/// </summary>
+		/// </code>
+		/// </remarks>
 		/// <param name="s">The timecode to parse</param>
 		/// <param name="tickRate">If found in the file ttp namespace, the tickRate used for time using Ticks format.</param>
-		/// <returns>The parsed timecode as a TimeSpan instance. If the parsing was unsuccessful, -1 is returned (subtitles should never show)</returns>
-		private int ParseTimecode(string s, long? tickRate = 10000000)
+		/// <returns>The parsed string timecode in milliseconds. If the parsing was unsuccessful, -1 is returned</returns>
+		private static int ParseTimecode(string s, long? tickRate = 10000000)
         {
             // Ensure null values get a "default" value
             tickRate = tickRate.HasValue ? tickRate : 10000000;
 
-			// Get time in 00:00:20,000 format
+			// Get time in 00:00:20,000 format (TimeSpan format)
 			if (TimeSpan.TryParse(s, out TimeSpan result))
             {
                 return (int)result.TotalMilliseconds;

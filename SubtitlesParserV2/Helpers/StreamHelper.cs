@@ -3,7 +3,7 @@ using System.IO;
 
 namespace SubtitlesParserV2.Helpers
 {
-    static class StreamHelper
+    internal static class StreamHelper
     {
         /// <summary>
         /// Copies a stream to another stream.
@@ -11,7 +11,7 @@ namespace SubtitlesParserV2.Helpers
         /// </summary>
         /// <param name="inputStream">The stream to copy</param>
         /// <returns>A copy of the input Stream</returns>
-        public static Stream CopyStream(Stream inputStream)
+        internal static Stream CopyStream(Stream inputStream)
         {
             MemoryStream outputStream = new MemoryStream();
             int count;
@@ -39,7 +39,7 @@ namespace SubtitlesParserV2.Helpers
         /// </summary>
         /// <param name="stream">The stream to verify</param>
         /// <exception cref="ArgumentException"></exception>
-        public static void ThrowIfStreamIsNotSeekableOrReadable(Stream stream) 
+        internal static void ThrowIfStreamIsNotSeekableOrReadable(Stream stream) 
         {
 			// test if stream if readable and seekable (just a check, should be good)
 			if (!stream.CanRead || !stream.CanSeek)

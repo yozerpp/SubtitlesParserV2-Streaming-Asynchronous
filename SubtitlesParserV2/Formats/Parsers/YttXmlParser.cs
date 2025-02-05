@@ -14,9 +14,11 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for .ytt files (Youtube Timed Text)
-	/// Unofficial doc: https://github.com/FyraLabs/yttml/blob/main/crates/srv3-ttml/internals/srv3-format.md
+	/// Parser for .ytt files (Youtube Timed Text).
 	/// </summary>
+	/// <!--
+	/// Sources (Unofficial) : https://github.com/FyraLabs/yttml/blob/main/crates/srv3-ttml/internals/srv3-format.md
+	/// -->
 	internal class YttXmlParser : ISubtitlesParser
 	{
 		private static readonly Type CurrentType = typeof(YttXmlParser);

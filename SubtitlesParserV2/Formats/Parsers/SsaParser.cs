@@ -11,14 +11,20 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// A parser for the SubStation Alpha subtitles format. .ass and .ssa
-	/// See http://en.wikipedia.org/wiki/SubStation_Alpha for complete explanations.
-	/// Ex:
+	/// A parser for the SubStation Alpha subtitles format, .ass /.ssa
+	/// <strong>Support</strong> : v4.00, v4 is backward compatible.
+	/// </summary>
+	/// <!--
+	/// Sources:
+	/// http://en.wikipedia.org/wiki/SubStation_Alpha
+	/// http://www.tcax.org/docs/ass-specs.htm
+	/// https://wiki.videolan.org/SubStation_Alpha/
+	/// Example:
+	/// 
 	/// [Script Info]
 	/// ; This is a Sub Station Alpha v4 script.
 	/// ; For Sub Station Alpha info and downloads,
-	/// ; go to http://www.eswat.demon.co.uk/ (https://wiki.videolan.org/SubStation_Alpha/)
-	/// ; http://www.tcax.org/docs/ass-specs.htm (format spec => https://web.archive.org/web/20000618130810/http://www.eswat.demon.co.uk/downloads/format.zip)
+	/// ; go to http://www.eswat.demon.co.uk/ (https://web.archive.org/web/20000618130810/http://www.eswat.demon.co.uk/downloads/format.zip)
 	/// Title: Neon Genesis Evangelion - Episode 26 (neutral Spanish)
 	/// Original Script: RoRo
 	/// Script Updated By: version 2.8.01
@@ -35,7 +41,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// [Events]
 	/// Format: Marked, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 	/// Dialogue: Marked=0,0:00:01.18,0:00:06.85,DefaultVCD, NTP,0000,0000,0000,,{\pos(400,570)}Like an angel with pity on nobody
-	/// </summary>
+	/// -->
 	internal class SsaParser : ISubtitlesParser
 	{
 
@@ -96,8 +102,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 							string textLine = string.Join(",", columns.Skip(textIndexColumn));
 
-							int start = ParseSsaTimecode(startText);
-							int end = ParseSsaTimecode(endText);
+							int start = ParserHelper.ParseTimeSpanLineAsMilliseconds(startText);
+							int end = ParserHelper.ParseTimeSpanLineAsMilliseconds(endText);
 
 							if (start > 0 && end > 0 && !string.IsNullOrEmpty(textLine))
 							{
@@ -161,26 +167,6 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			else throw new ArgumentException($"Reached line ${line} on a total of #{lineNumber} lines, without finding Event section ({SsaFormatConstantsHelper.EVENT_LINE}). Aborted parsing.");
 
-		}
-
-		/// <summary>
-		/// Takes an SRT timecode as a string and parses it into a double (in seconds). A SRT timecode reads as follows: 
-		/// 00:00:20,000
-		/// </summary>
-		/// <param name="s">The timecode to parse</param>
-		/// <returns>The parsed timecode as a TimeSpan instance. If the parsing was unsuccessful, -1 is returned (subtitles should never show)</returns>
-		private static int ParseSsaTimecode(string s)
-		{
-			TimeSpan result;
-			if (TimeSpan.TryParse(s, out result))
-			{
-				int nbOfMs = (int)result.TotalMilliseconds;
-				return nbOfMs;
-			}
-			else
-			{
-				return -1;
-			}
 		}
 	}
 }

@@ -12,8 +12,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
 	/// Parser for the .vtt subtitles files. Does not handle formatting tags within the text.
-	///
-	/// A .vtt file looks like:
+	/// </summary>
+	/// <!--
+	/// Sources:
+	/// https://www.w3.org/TR/webvtt1/#file-structure
+	/// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API/Web_Video_Text_Tracks_Format#cue_payload_text_tags
+	/// 
+	/// Example:
 	/// WEBVTT
 	///
 	/// CUE - 1
@@ -23,9 +28,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// CUE - 2
 	/// 00:00:15.000 --> 00:00:18.000
 	/// At the left we can see...
-	/// Docs : https://www.w3.org/TR/webvtt1/#file-structure
-	/// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API/Web_Video_Text_Tracks_Format#cue_payload_text_tags
-	/// </summary>
+	/// -->
 	internal class VttParser : ISubtitlesParser
 	{
 		// Properties -----------------------------------------------------------------------
@@ -177,13 +180,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 		}
 
 		/// <summary>
-		/// Takes an VTT timecode as a string and parses it into a double (in seconds). A VTT timecode reads as follows:
+		/// Takes an VTT timecode as a string and parses it into milliseconds. A VTT timecode reads as follows:
 		/// 00:00:20.000
 		/// or
 		/// 00:20.000
 		/// </summary>
 		/// <param name="s">The timecode to parse</param>
-		/// <returns>The parsed timecode as a TimeSpan instance. If the parsing was unsuccessful, -1 is returned (subtitles should never show)</returns>
+		/// <returns>The parsed string timecode converted to milliseconds. If the parsing was unsuccessful, -1 is returned</returns>
 		private static int ParseVttTimecode(string s)
 		{
 			int hours = 0;

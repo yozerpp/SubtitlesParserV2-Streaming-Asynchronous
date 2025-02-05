@@ -10,6 +10,9 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace SubtitlesParserV2.Formats.Parsers
 {
+	/// <summary>
+	/// Configuration model for the Sami parser.
+	/// </summary>
 	public class SamiParserConfig
 	{
 		/// <summary>
@@ -20,12 +23,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public string? TargetLanguage { get; set; }
 	}
 	/// <summary>
-	/// Parser for the .sami/.smi subtitles files (html-like)
-	/// NOTE: Only support time parsing in ms (Microsoft DirectShow and Windows Media Player support only milliseconds)
+	/// Parser for the .sami/.smi subtitles files (html-like).
+	/// <strong>NOTE</strong>: Only support time parsing in ms (Microsoft DirectShow and Windows Media Player support only milliseconds)
+	/// </summary>
+	/// <!--
+	/// Sources:
 	/// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/dnacc/understanding-sami-1.0#sami-parameters
 	/// https://en.wikipedia.org/wiki/SAMI
 	/// https://docs.fileformat.com/video/sami/
-	/// </summary>
+	/// -->
 	internal class SamiParser : ISubtitlesParser, ISubtitlesParser<SamiParserConfig>
 	{
 		public List<SubtitleModel> ParseStream(Stream stream, Encoding encoding)
@@ -139,15 +145,20 @@ namespace SubtitlesParserV2.Formats.Parsers
 		}
 
 		/// <summary>
-		/// Parse sami text using the ms format only (assume sami uses MS time)
-		///		<SAMIParam>
-		///		Metrics {time:ms;}
-		///		Spec {MSFT:1.0;}
-		///		</ SAMIParam >
+		/// Parse sami text using the ms format only (assume sami uses MS time).
 		/// </summary>
+		/// <!--
+		/// We could detect other time format implemented by third-party programs,
+		/// but doc says time metrics should be MS by default:
+		///	<SAMIParam>
+		///	Metrics {time:ms;}
+		///	Spec {MSFT:1.0;}
+		///	</SAMIParam >
+		/// ]]>
+		/// -->
 		/// <param name="text">The text to parse</param>
 		/// <returns>The time in milliseconds or null if it failed</returns>
-		public static int? ParseSamiTime(string text)
+		private static int? ParseSamiTime(string text)
 		{
 			bool success = int.TryParse(text, out int time);
 			if (success) return time;
@@ -159,7 +170,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </summary>
 		/// <param name="line">The line to parse</param>
 		/// <returns>A ValueTuple with the text as Item2 and the targetLanguage as Item2</returns>
-		public static (string? text, string? targetLanguage) GetTextFromLine(string line)
+		private static (string? text, string? targetLanguage) GetTextFromLine(string line)
 		{
 			string? text = null;
 			string? targetLanguage = null;
