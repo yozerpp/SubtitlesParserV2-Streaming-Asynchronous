@@ -21,6 +21,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
+
+      - name: "Create NuGet release note file"
+        run: |
+          echo "${{ github.event.release.body }}" > PACKAGE-RELEASE-NOTES.txt
           
       - name: "Restore packages"
         run: dotnet restore "${{ env.PROJECT_PATH }}"
