@@ -6,17 +6,17 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 > This is a fork/continuation of the original [SubtitlesParser](https://github.com/AlexPoint/SubtitlesParser) that seems to be a bit outdated / not updated anymore on nuget. Since I needed to parse subtitles in one of my projects, I decided to take this existing library, update the dependencies, and rewrite some parts of it in my own way at the same time, fixing / improving some parsers.
 
 ## Supported Parsers/Writers
-| Subtitle Format                        | Parser | Writer | Extensions Detection            |
-|-----------------------------------------|:------:|:------:|--------------------------------|
-| SubRip                                  | ✅     | ❌     | `.srt`                         |
-| LRC                                     | ✅     | ❌     | `.lrc`                         |
-| MicroDvd                                | ✅     | ❌     | `.sub`                         |
-| SubViewer                               | ✅     | ❌     | `.sbv`                         |
-| SubStationAlpha                         | ✅     | ❌     | `.ssa`, `.ass`                  |
-| TTML                                    | ✅     | ❌     | `.ttml`                         |
-| WebVTT                                  | ✅     | ❌     | `.vtt`                          |
-| Synchronized Accessible Media Interchange (SAMI) | ✅ | ❌     | `.smi`, `.sami`                 |
-| YouTube Timed Text (YoutubeXml)         | ✅     | ❌     | `.ytt`, `.srv3`, `.srv2`, `.srv1` |
+| Subtitle Format                         | Parser | Writer | Extensions Detection            | Supported Specs / Versions     |
+|-----------------------------------------|:------:|:------:|:-------------------------------:|--------------------------------|
+| SubRip                                  | ✅     | ❌     | `.srt`                         | `srt`                          |
+| LRC                                     | ✅     | ❌     | `.lrc`                         | `Core LRC`, `Enhanced LRC format (A2 extension)`|
+| MicroDvd                                | ✅     | ❌     | `.sub`                         | `MicroDVD`                     |
+| SubViewer                               | ✅     | ❌     | `.sbv`                         | `SubViewer2`, `SubViewer1`     |
+| SubStationAlpha                         | ✅     | ❌     | `.ssa`, `.ass`                 | `v4.00` + backward             |
+| TTML                                    | ✅     | ❌     | `.ttml`, `.dfxp`               | `TTML 1.0`, `TTML 2.0          |
+| WebVTT                                  | ✅     | ❌     | `.vtt`                         | `WebVTT`                       |
+| Synchronized Accessible Media Interchange (SAMI) | ✅ | ❌| `.smi`, `.sami`                | `Only Support Time in MS`      |
+| YouTube Timed Text (YoutubeXml)         | ✅     | ❌     | `.ytt`, `.srv3`, `.srv2`, `.srv1` | `srv3`, `srv2`, `srv1`      |
 
 ### Quickstart
 #### Universal parser
