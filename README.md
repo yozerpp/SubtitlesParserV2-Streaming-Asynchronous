@@ -13,7 +13,7 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 | MicroDvd                                | ✅     | ❌     | `.sub`                         | `MicroDVD`                     |
 | SubViewer                               | ✅     | ❌     | `.sbv`                         | `SubViewer2`, `SubViewer1`     |
 | SubStationAlpha                         | ✅     | ❌     | `.ssa`, `.ass`                 | `v4.00` + backward             |
-| TTML                                    | ✅     | ❌     | `.ttml`, `.dfxp`               | `TTML 1.0`, `TTML 2.0          |
+| TTML                                    | ✅     | ❌     | `.ttml`, `.dfxp`               | `TTML 1.0`, `TTML 2.0`         |
 | WebVTT                                  | ✅     | ❌     | `.vtt`                         | `WebVTT`                       |
 | Synchronized Accessible Media Interchange (SAMI) | ✅ | ❌| `.smi`, `.sami`                | `Only Support Time in MS`      |
 | YouTube Timed Text (YoutubeXml)         | ✅     | ❌     | `.ytt`, `.srv3`, `.srv2`, `.srv1` | `srv3`, `srv2`, `srv1`      |
