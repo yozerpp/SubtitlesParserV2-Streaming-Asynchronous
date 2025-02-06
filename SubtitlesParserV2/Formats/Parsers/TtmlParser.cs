@@ -13,8 +13,9 @@ using SubtitlesParserV2.Models;
 namespace SubtitlesParserV2.Formats.Parsers
 {
 	/// <summary>
-	/// Parser for .ttml files.
+	/// Parser for .ttml / .dfxp files.
 	/// </summary>
+	/// File Formats: Support TTML 1.0 and 2.0, dfxp (Distribution Format Exchange Profile) uses TTML 1.0
 	/// <!--
 	/// Sources:
 	/// https://www.w3.org/TR/2018/REC-ttml1-20181108/#vocabulary-namespaces

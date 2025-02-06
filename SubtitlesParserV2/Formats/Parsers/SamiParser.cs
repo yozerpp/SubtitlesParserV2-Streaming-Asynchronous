@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SubtitlesParserV2.Formats.Parsers
 {

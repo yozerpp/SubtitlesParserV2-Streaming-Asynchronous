@@ -77,7 +77,7 @@ namespace SubtitlesParserV2
 			{ SubtitleFormatType.MicroDvd, new SubtitleFormat("MicroDvd", new string[] {"sub"}, new MicroDvdParser()) },
 			{ SubtitleFormatType.SubViewer, new SubtitleFormat("SubViewer", new string[] {"sbv"}, new SubViewerParser()) },
 			{ SubtitleFormatType.SubStationAlpha, new SubtitleFormat("SubStationAlpha", new string[] {"ssa", "ass"}, new SsaParser()) },
-			{ SubtitleFormatType.TTML, new SubtitleFormat("TTML", new string[] {"ttml"}, new TtmlParser()) },
+			{ SubtitleFormatType.TTML, new SubtitleFormat("TTML", new string[] {"ttml", "dfxp"}, new TtmlParser()) },
 			{ SubtitleFormatType.WebVTT, new SubtitleFormat("WebVTT", new string[] {"vtt"}, new VttParser()) },
 			{ SubtitleFormatType.SAMI, new SubtitleFormat("Synchronized Accessible Media Interchange", new string[] {"smi", "sami"}, new SamiParser()) },
 			{ SubtitleFormatType.YoutubeXml, new SubtitleFormat("YouTube Timed Text (YoutubeXml)", new string[] {"ytt", "srv3", "srv2", "srv1"}, new YttXmlParser()) }
