@@ -86,7 +86,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <remarks>
 		/// A TTML timecode can reads as follows: 
 		/// <code>
-		/// 00:00:20,000
+		/// 5.0s (default version, based on time in seconds)
 		/// 79249170t (ticks version, dependant on tickRate)
 		/// </code>
 		/// </remarks>
@@ -98,7 +98,7 @@ namespace SubtitlesParserV2.Formats.Parsers
             // Ensure null values get a "default" value
             tickRate = tickRate.HasValue ? tickRate : 10000000;
 
-			// Get time in 00:00:20,000 format (TimeSpan format)
+			// Get time in 5.0s format (TimeSpan format)
 			if (TimeSpan.TryParse(s, out TimeSpan result))
             {
                 return (int)result.TotalMilliseconds;
