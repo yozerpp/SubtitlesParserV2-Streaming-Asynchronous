@@ -13,6 +13,7 @@ namespace SubtitlesParserV2
 	{
 		SubRip,
 		LRC,
+		TMP,
 		MicroDvd,
 		SubViewer,
 		SubStationAlpha,
@@ -74,6 +75,7 @@ namespace SubtitlesParserV2
 		{
 			{ SubtitleFormatType.SubRip, new SubtitleFormat("SubRip", new string[] {"srt"}, new SrtParser()) },
 			{ SubtitleFormatType.LRC, new SubtitleFormat("LRC", new string[] {"lrc"}, new LrcParser()) },
+			{ SubtitleFormatType.TMP, new SubtitleFormat("TMP", new string[] {"tmp"}, new TmpParser()) },
 			{ SubtitleFormatType.MicroDvd, new SubtitleFormat("MicroDvd", new string[] {"sub"}, new MicroDvdParser()) },
 			{ SubtitleFormatType.SubViewer, new SubtitleFormat("SubViewer", new string[] {"sbv"}, new SubViewerParser()) },
 			{ SubtitleFormatType.SubStationAlpha, new SubtitleFormat("SubStationAlpha", new string[] {"ssa", "ass"}, new SsaParser()) },

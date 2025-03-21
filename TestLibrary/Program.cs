@@ -78,7 +78,7 @@ namespace TestLibrary
 						}
 						catch (Exception ex)
 						{
-							_logger.LogWarning("Parsing of file {fileName}: FAILURE\n{ex}", fileName, ex);
+							_logger.LogError("Parsing of file {fileName}: FAILURE\n{ex}", fileName, ex);
 						}
 					}
 					_logger.LogInformation("----------------------");
