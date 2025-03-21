@@ -18,6 +18,7 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 | WebVTT                                  | ✅     | ❌     | `.vtt`                         | `WebVTT`                       |
 | Synchronized Accessible Media Interchange (SAMI) | ✅ | ❌| `.smi`, `.sami`                | `Only Support Time in MS`      |
 | YouTube Timed Text (YoutubeXml)         | ✅     | ❌     | `.ytt`, `.srv3`, `.srv2`, `.srv1` | `srv3`, `srv2`, `srv1`      |
+| MPL2                                    | ✅     | ❌     | `.mpl`, `.mpl2`                | [`MPL`](https://wiki.multimedia.cx/index.php/MPL2)|
 
 ### Quickstart
 #### Universal parser

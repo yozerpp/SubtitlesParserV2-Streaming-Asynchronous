@@ -98,6 +98,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Only split the first 4 ':', after which everything else is part of index 3 (Aka, the content)
 			string[] parts = line.Split(':', 4);
 			// Ensure they is at least 4 separations on the line
+			// NOTE: We could default to defining time to -1 when invalid, however due to the file having almost no unique feature,
+			// a invalid timestamp is the best way to detect that the current stream is not in TMP format and stop parsing early
 			if (parts.Length < 4) throw new ArgumentException("Stream line is not in a valid TMP format.");
 
 			int hours = 0;
