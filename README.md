@@ -10,6 +10,7 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 |-----------------------------------------|:------:|:------:|:-------------------------------:|--------------------------------|
 | SubRip                                  | ✅     | ❌     | `.srt`                         | `srt`                          |
 | LRC                                     | ✅     | ❌     | `.lrc`                         | `Core LRC`, `Enhanced LRC format (A2 extension)`|
+| TMP                                     | ✅     | ❌     | `.tmp`                         | [`TMP`](https://web.archive.org/web/20080121210347/https://napisy.ovh.org/readarticle.php?article_id=4)|
 | MicroDvd                                | ✅     | ❌     | `.sub`                         | `MicroDVD`                     |
 | SubViewer                               | ✅     | ❌     | `.sbv`                         | `SubViewer2`, `SubViewer1`     |
 | SubStationAlpha                         | ✅     | ❌     | `.ssa`, `.ass`                 | `v4.00` + backward             |

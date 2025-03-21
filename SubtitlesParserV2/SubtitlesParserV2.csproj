@@ -13,11 +13,7 @@
     <PackageProjectUrl>https://github.com/kitsumed/SubtitlesParserV2</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/kitsumed/SubtitlesParserV2.git</RepositoryUrl>
-<<<<<<< Updated upstream
-    <Description>Subtitles parser library that supports multiple files formats. Clone of the original SubtitlesParser</Description>
-=======
     <Description>Rework of the Universal Subtitles Parser with support for multiple file formats such as TTML, ASS, SBV, LRC, SRT, SAMI, VTT, and more!</Description>
->>>>>>> Stashed changes
     <PackageReleaseNotes></PackageReleaseNotes>
     <Copyright>Copyright (C) 2025 kitsumed (Med)</Copyright>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
