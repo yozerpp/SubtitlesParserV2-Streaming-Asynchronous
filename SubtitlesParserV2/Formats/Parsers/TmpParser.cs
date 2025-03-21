@@ -3,6 +3,7 @@ using SubtitlesParserV2.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace SubtitlesParserV2.Formats.Parsers
@@ -15,6 +16,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// <!--
 	/// Sources:
 	/// https://web.archive.org/web/20080121210347/https://napisy.ovh.org/readarticle.php?article_id=4
+	/// https://wiki.multimedia.cx/index.php/TMPlayer
 	/// Example:
 	/// 00:01:52:Sample 1
 	/// 00:01:55:Sample 2!
@@ -40,7 +42,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			{
 				string? nextLine = reader.ReadLine();
 				// Parse last line
-				(int lastLineTimeMs, string lastLineContent) = ParseTmpLine(lastLine);
+				(int lastLineTimeMs, List<string> lastLinesContent) = ParseTmpLine(lastLine);
 
 				// If nextLine exists, we know the end time of the previous line
 				if (nextLine != null)
@@ -51,7 +53,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						StartTime = lastLineTimeMs,
 						EndTime = nextLineTimeMs,
-						Lines = new List<string> { lastLineContent }
+						Lines = lastLinesContent
 					});
 				}
 				else if (nextLine == null) // If we reached the end of the file, there is only "lastLine" that need to be added to items
@@ -60,7 +62,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						StartTime = lastLineTimeMs,
 						EndTime = -1, // Since this is the last item, we can't know the end time, we could implement support for files that mention the "length".
-						Lines = new List<string> { lastLineContent }
+						Lines = lastLinesContent
 					});
 					break; // Once we reach that point, end of file was reached
 				}
@@ -80,17 +82,18 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 
 		/// <summary>
-		/// Parse one Tmp format line to get the time in milliseconds and the line content
+		/// Parse one Tmp format line to get the time in milliseconds and the lines content (assuming '|' new line character is used)
 		/// </summary>
 		/// <!--
 		/// Time Format: HH:MM:SS
 		/// Example:
 		/// 00:00:00:My lyrics!
+		/// 00:00:02:My first line!|Second line!
 		/// -->
 		/// <param name="line"></param>
-		/// <returns>The time in milliseconds and the line content</returns>
+		/// <returns>The time in milliseconds and the lines content</returns>
 		/// <exception cref="ArgumentException">When line is not in a valid format</exception>
-		private static (int time, string content) ParseTmpLine(string line)
+		private static (int time, List<string> linesContent) ParseTmpLine(string line)
 		{
 			// Only split the first 4 ':', after which everything else is part of index 3 (Aka, the content)
 			string[] parts = line.Split(':', 4);
@@ -106,7 +109,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				throw new ArgumentException("Stream line has invalid characters at positions used for time. Stream is not a valid TMP format.");
 			}
 			// Return time in MS along with line content
-			return ((int)new TimeSpan(hours, minutes, seconds).TotalMilliseconds, parts[3].Trim());
+			return ((int)new TimeSpan(hours, minutes, seconds).TotalMilliseconds, parts[3].Split('|').Select(line => line.Trim()).ToList());
 		}
 	}
 }

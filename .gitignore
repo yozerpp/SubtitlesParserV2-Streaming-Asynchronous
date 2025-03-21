@@ -39,6 +39,7 @@ build/
 *.tli
 *.tlh
 *.tmp
+!TestLibrary/Content/TestFiles/*.tmp
 *.tmp_proj
 *.log
 *.vspscc
