@@ -72,7 +72,7 @@ namespace SubtitlesParserV2
 		/// SubtitleFormat.GetFormat();
 		/// </code>
 		/// </summary>
-		public static readonly Dictionary<SubtitleFormatType, SubtitleFormat> Formats = new Dictionary<SubtitleFormatType, SubtitleFormat>()
+		public static readonly IReadOnlyDictionary<SubtitleFormatType, SubtitleFormat> Formats = new Dictionary<SubtitleFormatType, SubtitleFormat>()
 		{
 			{ SubtitleFormatType.SubRip, new SubtitleFormat("SubRip", new string[] {"srt"}, new SrtParser()) },
 			{ SubtitleFormatType.LRC, new SubtitleFormat("LRC", new string[] {"lrc"}, new LrcParser()) },
