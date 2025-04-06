@@ -137,7 +137,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				int.TryParse(match?.Groups["M"]?.Value, out minutes);
 				int.TryParse(match?.Groups["S"]?.Value, out seconds);
 				int.TryParse(match?.Groups["X"]?.Value, out milliseconds);
-				return (int)new TimeSpan(hours, minutes, seconds, milliseconds).TotalMilliseconds;
+				return (int)new TimeSpan(0, hours, minutes, seconds, milliseconds).TotalMilliseconds;
 			}
 			return null;
 		}
