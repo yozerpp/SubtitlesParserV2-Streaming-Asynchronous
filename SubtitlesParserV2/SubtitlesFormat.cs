@@ -1,4 +1,5 @@
 ﻿using SubtitlesParserV2.Formats.Parsers;
+using SubtitlesParserV2.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,7 +111,8 @@ namespace SubtitlesParserV2
 			IEnumerable<SubtitleFormatType>? formatType = Formats.Where(format => format.Value?.Extensions?.Any(currFormatExtension => extension.Equals(currFormatExtension, StringComparison.InvariantCultureIgnoreCase)) ?? false)
 			.Select(format => format.Key);
 
-			if (formatType.Any()) 
+			formatType = formatType.Peekable(out bool wasFound);
+			if (wasFound) 
 			{
 				return formatType.First();
 			}
@@ -131,7 +133,8 @@ namespace SubtitlesParserV2
 			IEnumerable<SubtitleFormatType>? formatType = Formats.Where(format => name.Equals(format.Value.Name, StringComparison.InvariantCultureIgnoreCase))
 			.Select(format => format.Key);
 
-			if (formatType.Any())
+			formatType = formatType.Peekable(out bool wasFound);
+			if (wasFound)
 			{
 				return formatType.First();
 			}
