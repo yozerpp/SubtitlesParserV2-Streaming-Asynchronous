@@ -19,10 +19,4 @@
     <ProjectReference Include="..\SubtitlesParserV2\SubtitlesParserV2.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Content\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>    
-  </ItemGroup>
-
 </Project>
