@@ -89,6 +89,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 						items.Add(item);
 					}
 
+					// Reached the end of the processing of a part, so we are no longer in the "first part"
+					isFirstPart = false;
 				}
 
 				// Verify if we have found at least 1 subtitle, else throw
