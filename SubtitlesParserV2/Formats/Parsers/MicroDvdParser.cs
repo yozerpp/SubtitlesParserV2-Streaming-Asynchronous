@@ -78,7 +78,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			List<SubtitleModel> items = new List<SubtitleModel>();
 			string? line = reader.ReadLine();
 			// find the first relevant line
-			while (line != null && !IsMicroDvdLine(line) && config.FirstLineSearchTimeout != 0)
+			while (line != null && !IsMicroDvdLine(line) && config.FirstLineSearchTimeout > 0)
 			{
 				line = reader.ReadLine();
 				config.FirstLineSearchTimeout--;
