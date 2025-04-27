@@ -22,6 +22,12 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// this value when parsing the file.
 		/// </summary>
 		public float? Framerate { get; set; }
+
+		/// <summary>
+		/// Define the maximum number of lines the program will continue reading before exiting if it
+		/// haven't found any lines in MicroDvd format.
+		/// </summary>
+		public int FirstLineSearchTimeout { get; set; } = 20;
 	}
 	/// <summary>
 	/// Parser for MicroDVD .sub subtitles files.
@@ -72,9 +78,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 			List<SubtitleModel> items = new List<SubtitleModel>();
 			string? line = reader.ReadLine();
 			// find the first relevant line
-			while (line != null && !IsMicroDvdLine(line))
+			while (line != null && !IsMicroDvdLine(line) && config.FirstLineSearchTimeout != 0)
 			{
 				line = reader.ReadLine();
+				config.FirstLineSearchTimeout--;
 			}
 
 			if (line != null)
