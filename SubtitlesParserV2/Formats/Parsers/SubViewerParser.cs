@@ -65,7 +65,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					lineNumber++;
 				}
 
-				// Here, the line is a timestamp line (due to our previous loop), except it we exceded the hard-coded
+				// Here, the line is a timestamp line (due to our previous loop), except if we exceded the hard-coded
 				// max number of lines read for SubViewer1
 				if (line != null && lineNumber <= MaxLineNumberForItems)
 				{

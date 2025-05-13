@@ -84,7 +84,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					}
 
 					// Ensure the subtitle item is valid before pushing it to the final list
-					if ((item.StartTime != 0 || item.EndTime != 0) && item.Lines.Any())
+					if ((item.StartTime != 0 || item.EndTime != 0) && item.Lines.Count >= 1)
 					{
 						items.Add(item);
 					}

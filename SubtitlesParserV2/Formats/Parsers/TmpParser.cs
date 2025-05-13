@@ -44,7 +44,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				// Parse last line
 				(int lastLineTimeMs, List<string> lastLinesContent) = ParseTmpLine(lastLine);
 
-				// If nextLine exists, we know the end time of the previous line
+				// If nextLine exists, we can know the end time of the previous line
 				if (nextLine != null)
 				{
 					// Parse current line (Aka, end time of lastLine)

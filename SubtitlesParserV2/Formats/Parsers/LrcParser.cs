@@ -97,7 +97,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 							Lines = new List<string> { cleanLine }
 						});
 					}
-					lastLine = null; // Cause the loop to stop, could do break; too
+					break;
 				}
 			} while (lastLine != null);
 

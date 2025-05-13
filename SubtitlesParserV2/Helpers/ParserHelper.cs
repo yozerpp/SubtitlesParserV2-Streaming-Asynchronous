@@ -36,7 +36,7 @@ namespace SubtitlesParserV2.Helpers
 		/// All texte will be appended together without adding or removing spaces, the final returned result is trimmed.
 		/// </summary>
 		/// <remarks>
-		/// <strong>Will only read child elements with localnames : span,font,string,b,u,i</strong>
+		/// <strong>Will only read child elements with localnames : span,font,string,b,u,i,p</strong>
 		/// </remarks>
 		/// <param name="reader">The xml reader</param>
 		/// <returns>All child elements text appended together and trimmed</returns>
@@ -56,7 +56,7 @@ namespace SubtitlesParserV2.Helpers
 					{
 						textBuilder.Append(reader.Value);
 					}
-					else if (reader.NodeType == XmlNodeType.Element && (reader.LocalName == "span" || reader.LocalName == "font" || reader.LocalName == "b" || reader.LocalName == "u" || reader.LocalName == "i" || reader.LocalName == "string"))
+					else if (reader.NodeType == XmlNodeType.Element && (reader.LocalName == "span" || reader.LocalName == "font" || reader.LocalName == "b" || reader.LocalName == "u" || reader.LocalName == "i" || reader.LocalName == "string" || reader.LocalName == "p"))
 					{
 						// Read the content of (<span> / other name) and it's childs
 						textBuilder.Append(XmlReadCurrentElementInnerText(reader));

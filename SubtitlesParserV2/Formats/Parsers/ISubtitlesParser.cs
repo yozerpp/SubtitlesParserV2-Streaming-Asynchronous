@@ -13,7 +13,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	public interface ISubtitlesParser
 	{
 		/// <summary>
-		/// Parses a subtitles file stream in a list of SubtitleItem.
+		/// Parses a subtitles file stream in a list of SubtitleItem using the default configuration.
 		/// </summary>
 		/// <remarks>
 		/// If the parser require additional configuration, this method will uses the
@@ -43,8 +43,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 	public interface ISubtitlesParser<TConfig> // where TConfig : class // Restrict TConfig to a class type to allow it to be a nullable Type
 	{
 		/// <summary>
-		/// Parses a subtitles file stream in a list of SubtitleItem
+		/// Parses a subtitles file stream in a list of SubtitleItem using a specific configuration.
 		/// </summary>
+		/// <remarks>
+		/// <strong>When using this method, make sure you call it from inside a try-catch as exceptions will be thrown on failure to parse.</strong>
+		/// </remarks>
 		/// <param name="stream">The subtitles file stream to parse</param>
 		/// <param name="encoding">The stream encoding (if known)</param>
 		/// <param name="configuration">The configuration for the parser.</param>

@@ -11,7 +11,7 @@ using System.Text;
 namespace SubtitlesParserV2
 {
     /// <summary>
-    /// This class implement the public exposed methods to parse a subtitle file
+    /// This class implement the public exposed methods to parse a subtitle file and interact with the parsers instances.
     /// </summary>
     public static class SubtitleParser
 	{
@@ -66,7 +66,7 @@ namespace SubtitlesParserV2
 		/// <param name="stream">The stream</param>
 		/// <param name="encoding">The encoding</param>
 		/// <param name="selectedFormats">If specified, will only try the selected parsers.</param>
-		/// <param name="ignoreException">If true (default), will ignore parsers exceptions and continue to the next one. If false, exception will be thrown,</param>
+		/// <param name="ignoreException">If true (default), will ignore parsers exceptions and continue to the next one. If false, exception will be thrown.</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
 		public static SubtitleParserResultModel? ParseStream(Stream stream, Encoding encoding, IEnumerable<SubtitleFormatType>? selectedFormats = null, bool ignoreException = true)
