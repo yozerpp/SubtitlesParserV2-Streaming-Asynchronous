@@ -31,6 +31,9 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			// Value for parsing timecode for ttml file using ticks only, null by default (disabled)
 			long? definedTickRate = null;
+			// Value for parsing timecode for ttml files using frames, null by default (disabled)
+			int? definedFrameRate = null;
+			(int numerator, int denumerator)? definedFrameRateMultiplier = null;
 
 			while (reader.Read()) 
 			{
@@ -46,6 +49,20 @@ namespace SubtitlesParserV2.Formats.Parsers
 							{
 								definedTickRate = parsedTickRate;
 							}
+							else if (reader.LocalName == "frameRate" && int.TryParse(reader.Value, out int parsedFrameRate))
+							{
+								definedFrameRate = parsedFrameRate;
+							}
+							else if (reader.LocalName == "frameRateMultiplier" && !string.IsNullOrEmpty(reader.Value))
+							{
+								string[] parts = reader.Value.Split(new char[' '], StringSplitOptions.RemoveEmptyEntries);
+								if (parts.Length == 2 && int.TryParse(parts[0], out int numerator) && int.TryParse(parts[1], out int denumerator))
+								{
+									// Check if the frameRateMultiplier is a valid for future "/" operation
+									if (numerator == 0 || denumerator == 0) throw new FormatException($"Invalid frameRateMultiplier value: {reader.Value}. Zero was found, cannot divide.");
+									definedFrameRateMultiplier = (numerator, denumerator);
+								}
+							}
 						}
 						reader.MoveToElement(); // Set our reader back to the <tt> element
 					}
@@ -55,10 +72,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						// Parse time
 						string beginString = reader.GetAttribute("begin") ?? string.Empty;
-						int startMs = ParseTimecode(beginString, definedTickRate);
+						int startMs = ParseTimecode(beginString, definedTickRate, definedFrameRate, definedFrameRateMultiplier);
 
 						string endString = reader.GetAttribute("end") ?? string.Empty;
-						int endMs = ParseTimecode(endString, definedTickRate);
+						int endMs = ParseTimecode(endString, definedTickRate, definedFrameRate, definedFrameRateMultiplier);
 
 						// Parse subtitle text
 						string text = ParserHelper.XmlReadCurrentElementInnerText(reader);
@@ -94,13 +111,18 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </remarks>
 		/// <param name="s">The timecode to parse</param>
 		/// <param name="tickRate">If found in the file ttp namespace, the tickRate used for time using Ticks format.</param>
+		/// <param name="frameRate">If found in the file ttp namespace, the frameRate used for time using Frames format.</param>
+		/// <param name="frameRateMultiplier">If found in the file ttp namespace, the frameRateMultiplier applied to Frames format.</param>
 		/// <returns>The parsed string timecode in milliseconds. If the parsing was unsuccessful, -1 is returned</returns>
-		private static int ParseTimecode(string s, long? tickRate = 10000000)
+		private static int ParseTimecode(string s, long? tickRate = 10000000, int? frameRate = 24, (int numerator, int denumerator)? frameRateMultiplier = null)
         {
             // Ensure null values get a "default" value
             tickRate = tickRate.HasValue ? tickRate : 10000000;
+			frameRate = frameRate.HasValue ? frameRate : 24;
+			frameRateMultiplier = frameRateMultiplier.HasValue ? frameRateMultiplier : null;
 
-			// Get time in 5.0s format (TimeSpan format)
+
+			// Get time in "00:01:05.500" or "5.0s" format (TimeSpan format)
 			if (TimeSpan.TryParse(s, out TimeSpan result))
             {
                 return (int)result.TotalMilliseconds;
@@ -113,7 +135,22 @@ namespace SubtitlesParserV2.Formats.Parsers
                 // result is the time in segonds, we convert it into MS.
 				return (int)TimeSpan.FromSeconds(ticks / tickRate.Value).TotalMilliseconds;
             }
-			// TODO : Add support for frame based time https://www.w3.org/TR/ttml1/#parameter-attribute-frameRate
+
+			// Frame based time https://www.w3.org/TR/ttml1/#parameter-attribute-frameRate
+			if (s.EndsWith("f") && long.TryParse(s.TrimEnd('f'), out long frames))
+			{
+				// Calculate effective fps
+				double effectiveFps = frameRate.Value;
+				// If a frameRateMultiplier is defined, we need to apply it to the fps
+				if (frameRateMultiplier.HasValue)
+				{
+					effectiveFps *= (frameRateMultiplier.Value.numerator / (double)frameRateMultiplier.Value.denumerator);
+				}
+
+				// frames / fps = seconds
+				double seconds = frames / effectiveFps;
+				return (int)TimeSpan.FromSeconds(seconds).TotalMilliseconds;
+			}
 			return -1;
         }
     }

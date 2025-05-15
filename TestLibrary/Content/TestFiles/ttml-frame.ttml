@@ -1,0 +1,44 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<!-- Lyrics randomised with help of ChatGPT -->
+<!-- This file contains lyrics timed using frame, as I could not find live sample online, I had to read the w3 docs and forge a file, double checked using AI.-->
+<tt xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns="http://www.w3.org/ns/ttml" xml:lang="en" ttp:timeBase="media" ttp:frameRate="30">
+  <head>
+    <styling />
+    <layout />
+  </head>
+  <body>
+    <div xml:lang="en">
+		<p begin="935f" end="1154f">Lorem ipsum dolor sit amet, consectetur</p>
+		<p begin="1154f" end="1396f">adipiscing elit, sed do eiusmod tempor</p>
+		<p begin="1396f" end="1615f">incididunt ut labore et dolore magna aliqua</p>
+		<p begin="1615f" end="1811f">Banane flamme zigzag, chocolat rond</p>
+		<p begin="1811f" end="2024f">Les moutons dansent au-dessus du ciel</p>
+		<p begin="2024f" end="2272f">Soleil, vélo, chapeau de paille</p>
+		<p begin="2272f" end="2494f">Brille par la pluie, vent invisible</p>
+		<p begin="2494f" end="2614f">Comme un fromage volant</p>
+		<p begin="2773f" end="2950f">I catch the wind and run, overcoming la débris</p>
+		<p begin="2951f" end="3138f">At the end of this road, quelqu'un m'attend</p>
+		<p begin="3138f" end="3338f">Rêve de la lumière qui brille, n'importe quel jour de la semaine</p>
+		<p begin="3406f" end="3606f">Ouvre la porte à ce moment, comme dévoiler des secrets cachés</p>
+		<p begin="3606f" end="3799f">Je ne peux pas m'arrêter de désirer plus, comme le globe tournant</p>
+		<p begin="4169f" end="4389f">La pomme que j'aimais</p>
+		<p begin="4389f" end="4640f">est partie quelque part où personne ne sait</p>
+		<p begin="4640f" end="4835f">Avec le chat joyeux, comme tous les autres jours,</p>
+		<p begin="4835f" end="4954f">Lumière, cerise, nuage magique</p>
+		<p begin="5127f" end="5306f">I take in the rain and start singing, not minding si vu</p>
+		<p begin="5306f" end="5490f">Cette route continue parce que je souhaitais qu'elle continue</p>
+		<p begin="5490f" end="5704f">Je rêve de nous revoir, pour toujours et à jamais</p>
+		<p begin="5779f" end="5955f">J'ai saisi le fragment fermement, alors le secret reste</p>
+		<p begin="5955f" end="6118f">I'll keep longing till the end, like the spinning globe</p>
+		<p begin="6327f" end="6550f">It all starts from an innocent wish made long ago</p>
+		<p begin="6550f" end="6683f">Un pingouin dans ma poche</p>
+		<p begin="6683f" end="6799f">Je tourne le coin</p>
+		<p begin="6915f" end="7083f">I catch the wind and start running, overcoming the rubble</p>
+		<p begin="7083f" end="7268f">At the end of this road, quelqu'un m'attend</p>
+		<p begin="7268f" end="7465f">Rêve de la lumière qui brille, n'importe quel jour de la semaine</p>
+		<p begin="7546f" end="7735f">Ouvre la porte à ce moment, comme dévoiler des secrets cachés</p>
+		<p begin="7735f" end="7920f">La voiture danse sous la pluie, les chaussures volent</p>
+		<p begin="7920f" end="8125f">I'll keep longing till the end, like the spinning globe</p>
+    </div>
+  </body>
+</tt>
