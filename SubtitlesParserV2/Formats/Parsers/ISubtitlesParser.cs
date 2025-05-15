@@ -18,6 +18,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <remarks>
 		/// If the parser require additional configuration, this method will uses the
 		/// default configuration. To define your own, consider using <see cref="ISubtitlesParser{TConfig}"/>.
+		/// <para>
+		/// <strong>When using this method, make sure you call it from inside a try-catch as exceptions will be thrown on failure to parse.</strong>
+		/// As a alternative, you can use the <see cref="SubtitleParser.ParseStream(Stream, Encoding, IEnumerable{SubtitleFormatType}?, bool)"/> method.
+		/// </para>
 		/// </remarks>
 		/// <param name="stream">The subtitles file stream to parse</param>
 		/// <param name="encoding">The stream encoding (if known)</param>
