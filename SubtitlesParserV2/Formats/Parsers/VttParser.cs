@@ -67,15 +67,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Loop per parts (groups of multiples lines)
 			do
 			{
-				IEnumerable<string> lines = vttSubParts.Current
-					.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries)
-					.Select(s => s.Trim());
+				IEnumerable<string> lines = vttSubParts.Current.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
 
 				SubtitleModel item = new SubtitleModel();
 				foreach (string line in lines)
 				{
-					// Verify if we havn't found the item time yet
-					if (item.StartTime == 0 && item.EndTime == 0)
+					// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
+					if (item.StartTime == -1 && item.EndTime == -1)
 					{
 						// Verify if current line is a timecode line
 						bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
@@ -161,6 +159,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
+		/// <summary>
+		/// Method that try to parse a line of the vtt file to get the start and end timecode.
+		/// </summary>
+		/// <param name="line">The line to parse</param>
+		/// <param name="startTc">The output start time in milliseconds</param>
+		/// <param name="endTc">The output end time in milliseconds</param>
+		/// <returns>True if it parsed the timecode from the line, else false</returns>
 		private static bool TryParseTimecodeLine(string line, out int startTc, out int endTc)
 		{
 			string[] parts = line.Split(_delimiters, StringSplitOptions.None);

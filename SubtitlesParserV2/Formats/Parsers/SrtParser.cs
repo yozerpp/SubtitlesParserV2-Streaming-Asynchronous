@@ -51,22 +51,21 @@ namespace SubtitlesParserV2.Formats.Parsers
 				bool isFirstPart = true;
 				foreach (string part in srtSubParts)
 				{
-					// Ensure that our stream does not have the WebVTT header in the first part, it has some similarities with SRT
-					// and can somtimes work*, but time parsing will fail. https://www.w3.org/TR/webvtt1/#file-structure
+					// Ensure that our stream does not have the WebVTT header in the first part (this happen when the SRT parser pick a WebVTT file),
+					// it has some similarities with SRT and thus can somtimes work*, but time parsing will fail. https://www.w3.org/TR/webvtt1/#file-structure
 					if (isFirstPart && part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
 					{
-						throw new FormatException("This stream seems to be in WebVTT format, Srt cannot parse it.");
+						throw new FormatException("This stream seems to be in WebVTT format, SRT cannot parse it.");
 					}
 
 					// Split new lines
-					IEnumerable<string> lines = part.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries)
-						.Select(line => line.Trim());
+					IEnumerable<string> lines = part.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim());
 
 					SubtitleModel item = new SubtitleModel();
 					foreach (string line in lines)
 					{
-						// Verify if we already found the subtitle time or not
-						if (item.StartTime == 0 && item.EndTime == 0)
+						// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
+						if (item.StartTime == -1 && item.EndTime == -1)
 						{
 							// Try to get the timecode
 							bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
@@ -149,6 +148,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
+		/// <summary>
+		/// Method that try to parse a line of the srt file to get the start and end timecode.
+		/// </summary>
+		/// <param name="line">The line to parse</param>
+		/// <param name="startTc">The output start time in milliseconds</param>
+		/// <param name="endTc">The output end time in milliseconds</param>
+		/// <returns>True if it parsed the timecode from the line, else false</returns>
 		private static bool TryParseTimecodeLine(string line, out int startTc, out int endTc)
 		{
 			string[] parts = line.Split(_delimiters, StringSplitOptions.None);
