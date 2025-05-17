@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml"
+    xmlns:ttp="http://www.w3.org/ns/ttml#parameter"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    ttp:timeBase="smpte"
+    ttp:frameRate="30"
+    ttp:frameRateMultiplier="1000 1001"
+    xml:lang="en">
+
+  <head>
+    <metadata>
+      <title>SMPTE with Frame Rate Multiplier</title>
+    </metadata>
+    <styling>
+      <style xml:id="subtitleStyle" tts:fontSize="14px" tts:color="white"/>
+    </styling>
+  </head>
+
+  <body>
+    <div>
+      <p begin="00:00:01:00" dur="00:00:01:00" style="subtitleStyle">29.97 fps simulated timing</p>
+      <p begin="00:00:03:00" dur="00:00:02:15" style="subtitleStyle">Second subtitle with multiplier</p>
+      <p begin="00:00:06:20" dur="00:00:01:10" style="subtitleStyle">Accurate timing at fractional frame rate</p>
+    </div>
+  </body>
+</tt>

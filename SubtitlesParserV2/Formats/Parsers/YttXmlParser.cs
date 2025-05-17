@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Xml;
@@ -55,18 +56,19 @@ namespace SubtitlesParserV2.Formats.Parsers
 						}
 					}
 
-					string text = ParserHelper.XmlReadCurrentElementInnerText(reader);
-					if (text != null) 
+					List<string> textLines = ParserHelper.XmlReadCurrentElementInnerText(reader);
+					if (textLines.Count >= 1)
 					{
 						// Get the text and html decode it as some versions (SRV1 & SRV2) uses html encoding
 						// for certains characters ( ' > &#39;t).
-						text = WebUtility.HtmlDecode(text);
+						// NOTE: We does this on all lines
+						textLines = textLines.Select(line => WebUtility.HtmlDecode(line)).ToList();
 
 						items.Add(new SubtitleModel()
 						{
 							StartTime = (int)start,
 							EndTime = (int)(start + duration), // Calculate the "end" time with the duration of the subtitle.
-							Lines = new List<string>() { text }
+							Lines = textLines
 						});
 					}
 				}

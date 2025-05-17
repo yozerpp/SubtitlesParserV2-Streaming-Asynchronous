@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 
@@ -33,16 +34,32 @@ namespace SubtitlesParserV2.Helpers
 
 		/// <summary>
 		/// Takes an xml reader and reads the inner elements (childs) to get all of the text values.
-		/// All texte will be appended together without adding or removing spaces, the final returned result is trimmed.
+		/// All texte will be appended together without adding or removing spaces, the final returned result is trimmed (per lines).
 		/// </summary>
+		/// 
 		/// <remarks>
-		/// <strong>Will only read child elements with localnames : span,font,string,b,u,i,p</strong>
+		/// <strong>Will only read child elements with localnames : span,font,string,text,b,u,i,p</strong>.
+		/// <para>Break elements (br) are treated as the start of a new line.</para>
 		/// </remarks>
 		/// <param name="reader">The xml reader</param>
-		/// <returns>All child elements text appended together and trimmed</returns>
-		internal static string XmlReadCurrentElementInnerText(XmlReader reader)
+		/// <returns>All child elements text appended together, trimmed and separated in a list per new lines</returns>
+		internal static List<string> XmlReadCurrentElementInnerText(XmlReader reader)
 		{
-			StringBuilder textBuilder = new StringBuilder();
+			// Store all of the lines part of the current element (break <br> elements)
+			List<string> lineList = new List<string>();
+			// Store the current text value
+			StringBuilder currLineBuilder = new StringBuilder();
+
+			// Local internal method to clear existing line builder into list and start a new one
+			void StartNewLine() 
+			{
+				// Ensure our current line is not empty before starting a new line
+				if (currLineBuilder.Length >= 1) 
+				{
+					lineList.Add(currLineBuilder.ToString().Trim());
+					currLineBuilder.Clear();
+				}
+			}
 
 			// Ensure our current element has at least one child
 			if (!reader.IsEmptyElement)
@@ -52,21 +69,37 @@ namespace SubtitlesParserV2.Helpers
 				int rootElementDepth = reader.Depth;
 				while (reader.Read())
 				{
-					if (reader.NodeType == XmlNodeType.Text)
+					// Check for <br> elements (start a new line)
+					if (reader.NodeType == XmlNodeType.Element && reader.LocalName == "br") StartNewLine();
+					// Check for text (append the text to the current line)
+					else if (reader.NodeType == XmlNodeType.Text)
 					{
-						textBuilder.Append(reader.Value);
+						currLineBuilder.Append(reader.Value);
 					}
-					else if (reader.NodeType == XmlNodeType.Element && (reader.LocalName == "span" || reader.LocalName == "font" || reader.LocalName == "b" || reader.LocalName == "u" || reader.LocalName == "i" || reader.LocalName == "string" || reader.LocalName == "p"))
+					// Read specific child elements text
+					else if (reader.NodeType == XmlNodeType.Element && (reader.LocalName == "span" || reader.LocalName == "font" || reader.LocalName == "b" || reader.LocalName == "u" || reader.LocalName == "p" || reader.LocalName == "i" || reader.LocalName == "string" || reader.LocalName == "text"))
 					{
 						// Read the content of (<span> / other name) and it's childs
-						textBuilder.Append(XmlReadCurrentElementInnerText(reader));
+						List<string> childLines = XmlReadCurrentElementInnerText(reader);
+						for (int i = 0; i < childLines.Count - 1; i++) 
+						{
+							// If we are not at the first child line, we need to start a new current line
+							// as we are processing a new child line
+							if (i >= 1) StartNewLine();
+							// Append the child line to our current line
+							currLineBuilder.Append(childLines[i]);
+						}
 					}
 					// If we reach the end of the current element (no more childs), we stop reading
 					else if (reader.NodeType == XmlNodeType.EndElement && reader.LocalName == rootElementName && rootElementDepth == reader.Depth) break;
 				}
 			}
 
-			return textBuilder.ToString().Trim();
+			// We call as if we are at the end of the parsing and our current line still has parsed content inside (this happen when there was only 1 line)
+			// we need to have it added to the list.
+			StartNewLine();
+
+			return lineList;
 		}
 	}
 }

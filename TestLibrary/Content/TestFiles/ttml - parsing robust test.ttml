@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Edge‐Case for TTML (ITT and more)
+  – ttp:timeBase, tickRate, frameRate, frameRateMultiplier
+  – clock‐time, offset‐time, ticks, frames, SMPTE with subframes
+  – missing end / using dur, empty cues, nested spans, style + region
+-->
+<tt xmlns="http://www.w3.org/ns/ttml"
+    xmlns:ttp="http://www.w3.org/ns/ttml#parameter"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    xmlns:ttm="http://www.w3.org/ns/ttml#metadata"
+    xml:lang="en"
+    ttp:timeBase="smpte"
+    ttp:frameRate="24"
+    ttp:frameRateMultiplier="1001 1000"
+    ttp:tickRate="1000">
+
+  <head>
+    <metadata>
+      <ttm:title>TTML Edge Cases test</ttm:title>
+    </metadata>
+    <styling>
+      <style xml:id="s1" tts:fontSize="12px" tts:color="yellow"/>
+    </styling>
+    <layout>
+      <region xml:id="r1" tts:origin="10% 80%" tts:extent="80% 15%"/>
+    </layout>
+  </head>
+
+  <body>
+    <div region="r1">
+
+      <!-- 1) Clock‐time with fractional seconds -->
+      <p begin="00:00:01.250" dur="2.5s" style="s1">
+        <span>Fractional</span> clock‐time
+      </p>
+
+      <!-- 2) Offset-time in ms, m, h -->
+      <p begin="1500ms" dur="0.5m">Milliseconds &amp; minutes</p>
+      <p begin="0.01h" dur="30s">Hours &amp; seconds</p>
+
+      <!-- 3) Tick‐based -->
+      <p begin="24000t" dur="48000t">Tick‐rate 1 ms ticks</p>
+
+      <!-- 4) Frame‐based -->
+      <p begin="24f" end="48f">Exactly 1 second by frames</p>
+
+      <!-- 5) SMPTE with subframes (subframe=2 digits) -->
+      <p begin="00:00:10:12.05" dur="00:00:02:00.10">
+        SMPTE + subframes
+      </p>
+
+      <!-- 6) SMPTE at fractional fps via multiplier (~23.976fps) -->
+      <p begin="00:00:20:00" dur="00:00:01:00">
+        Fractional fps test
+      </p>
+
+      <!-- 7) Missing end, using dur only -->
+      <p begin="00:00:25:00" dur="3s">Dur only, no end</p>
+
+      <!-- 8) Empty cue -->
+      <p begin="00:00:30.000" end="00:00:31.000"></p>
+
+      <!-- 9) Nested styling tags -->
+      <p begin="00:00:32.000" dur="2s">
+        <span><b>Bold</b> and <i>italic</i></span> nesting
+      </p>
+
+	  <!-- 10) New line -->
+	  <p begin="00:00:35.000" end="00:00:37.000">
+		First line
+		<br/>
+		Second line
+	   </p>
+
+	</div>
+  </body>
+</tt>

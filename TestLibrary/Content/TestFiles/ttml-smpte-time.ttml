@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<tt xmlns="http://www.w3.org/ns/ttml"
+    xmlns:ttp="http://www.w3.org/ns/ttml#parameter"
+    xmlns:tts="http://www.w3.org/ns/ttml#styling"
+    ttp:timeBase="smpte"
+    ttp:frameRate="30"
+    xml:lang="en">
+
+  <head>
+    <metadata>
+      <title>SMPTE Timecode Example</title>
+    </metadata>
+    <styling>
+      <style xml:id="subtitleStyle" tts:fontSize="14px" tts:color="white"/>
+    </styling>
+  </head>
+
+  <body>
+    <div>
+      <p begin="00:00:02:15" end="00:00:04:00" style="subtitleStyle">Hello from SMPTE!</p>
+      <p begin="00:00:05:10" dur="00:00:02:10" style="subtitleStyle">Second subtitle with duration.</p>
+      <p begin="00:00:10:00" dur="00:00:01:15" style="subtitleStyle">Third subtitle here.</p>
+    </div>
+  </body>
+</tt>
