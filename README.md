@@ -99,13 +99,13 @@ LoggerManager.LoggerFactory = loggerFactory; // Redirect SubtitlesParserV2 logs 
 ```
 
 ## Licenses / Acknowledgements
-**Current code** is licensed under the **GNU Lesser General Public License v3.0** (LGPLv3).
+**Current code** is licensed (*sublicensed as allowed per the original project MIT license*) under the **GNU Lesser General Public License v3.0** (LGPLv3).
 > [!TIP]
 > While this is not legal advice, a common misconception is that the [LGPL license](https://choosealicense.com/licenses/lgpl-3.0/), due to having "GPL" in its name, requires you to license your program under the GPL or the same license. This is not necessarily true. Since this project is a library,
 > the requirements depend on how you use the library and the compatibility between this project's license and your project's license. However, please note that this tip does not override the specific requirements of the LGPL license. There may be
 > additional obligations based on your use case. For further clarification, you can refer to the [LGPL FAQ about static vs dynamic linking requirements](https://www.gnu.org/licenses/gpl-faq.html#LGPLStaticVsDynamic), this [Reddit post](https://www.reddit.com/r/rust/comments/fevz37/comment/fjsg393/), or this [blog post](https://coding.abel.nu/2016/10/the-lgpl-license/#:~:text=LGPL%20is%20not%20%E2%80%9Ccontagious%E2%80%9D%20in,affects%20the%20component%20under%20LGPL.). **Again**, **this is not legal advice**.
 
-⚠️ The **original version**, [available here](https://github.com/AlexPoint/SubtitlesParser/tree/3e3b97409481dccaa5bb96391d1c066cf0f2dfef), is licensed under the original project made by AlexPoint, license/credits:
+⚠️ The **original version**, [available here](https://github.com/AlexPoint/SubtitlesParser/tree/3e3b97409481dccaa5bb96391d1c066cf0f2dfef) (*link redirects you to the exact commit from which the project was forked*, the commit history was discarded due to [concerns about some files in the commit history](https://github.com/kitsumed/SubtitlesParserV2/issues/1#issuecomment-2661584721).), is licensed under the original project made by AlexPoint, license/credits:
 ```
 The MIT License (MIT)
 
