@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Xml;
 
@@ -11,6 +12,12 @@ namespace SubtitlesParserV2.Helpers
 	internal static class ParserHelper
     {
 		/// <summary>
+		/// Store a list of xml elements that are allowed as child elements of the current element when reading with <see cref="XmlReader"/>.
+		/// Theses element will get their text value read and appended together when using <see cref="XmlReadCurrentElementInnerText(XmlReader)"/>
+		/// </summary>
+		private static readonly string[] XmlReaderAllowedChildElements = new string[] { "span", "font", "b", "u", "i", "p", "br", "string", "text", "karaoke", "k" };
+
+		/// <summary>
 		/// Takes an string, prase it as a <see cref="TimeSpan"/> timecode and turn it into milliseconds.
 		/// </summary>
 		/// <remarks>
@@ -21,7 +28,7 @@ namespace SubtitlesParserV2.Helpers
 		internal static int ParseTimeSpanLineAsMilliseconds(string s)
 		{
 			TimeSpan result;
-			if (TimeSpan.TryParse(s, out result))
+			if (TimeSpan.TryParse(s, CultureInfo.InvariantCulture, out result))
 			{
 				int nbOfMs = (int)result.TotalMilliseconds;
 				return nbOfMs;
@@ -38,7 +45,7 @@ namespace SubtitlesParserV2.Helpers
 		/// </summary>
 		/// 
 		/// <remarks>
-		/// <strong>Will only read child elements with localnames : span,font,string,text,b,u,i,p</strong>.
+		/// <strong>Will only read child elements with localnames in the <see cref="XmlReaderAllowedChildElements"/> array.</strong>.
 		/// <para>Break elements (br) are treated as the start of a new line.</para>
 		/// </remarks>
 		/// <param name="reader">The xml reader</param>
@@ -56,6 +63,7 @@ namespace SubtitlesParserV2.Helpers
 				// Ensure our current line is not empty before starting a new line
 				if (currLineBuilder.Length >= 1) 
 				{
+					currLineBuilder.Replace("\r", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);
 					lineList.Add(currLineBuilder.ToString().Trim());
 					currLineBuilder.Clear();
 				}
@@ -67,21 +75,26 @@ namespace SubtitlesParserV2.Helpers
 				// Store the informations of your current element to know when we reach the end of it
 				string rootElementName = reader.LocalName;
 				int rootElementDepth = reader.Depth;
+
+				// We store the previous element name to perform a check when we reach a text node, allowing us to allow or deny a text node
+				// if it's not in the allowed elements name list.
+				string previousElementName = rootElementName;
 				while (reader.Read())
 				{
 					// Check for <br> elements (start a new line)
 					if (reader.NodeType == XmlNodeType.Element && reader.LocalName == "br") StartNewLine();
-					// Check for text (append the text to the current line)
-					else if (reader.NodeType == XmlNodeType.Text)
+					// Check for text (append the text to the current line) *only if previously read element was a allowed child element or the root element itself
+					// For example, if the previous element was something like "<image>", then we will not append the text to the current line, as it is not allowed.
+					else if (reader.NodeType == XmlNodeType.Text && (previousElementName == rootElementName || Array.Exists(XmlReaderAllowedChildElements, allowedElementName => previousElementName == allowedElementName)))
 					{
 						currLineBuilder.Append(reader.Value);
 					}
 					// Read specific child elements text
-					else if (reader.NodeType == XmlNodeType.Element && (reader.LocalName == "span" || reader.LocalName == "font" || reader.LocalName == "b" || reader.LocalName == "u" || reader.LocalName == "p" || reader.LocalName == "i" || reader.LocalName == "string" || reader.LocalName == "text"))
+					else if (reader.NodeType == XmlNodeType.Element && Array.Exists(XmlReaderAllowedChildElements, allowedElementName => reader.Name == allowedElementName))
 					{
 						// Read the content of (<span> / other name) and it's childs
 						List<string> childLines = XmlReadCurrentElementInnerText(reader);
-						for (int i = 0; i < childLines.Count - 1; i++) 
+						for (int i = 0; i < childLines.Count; i++)
 						{
 							// If we are not at the first child line, we need to start a new current line
 							// as we are processing a new child line
@@ -90,8 +103,11 @@ namespace SubtitlesParserV2.Helpers
 							currLineBuilder.Append(childLines[i]);
 						}
 					}
-					// If we reach the end of the current element (no more childs), we stop reading
+					// If we reach the end of the current element block (no more childs inside the element), we stop reading
 					else if (reader.NodeType == XmlNodeType.EndElement && reader.LocalName == rootElementName && rootElementDepth == reader.Depth) break;
+					
+					// Update the previous element name to the current one before we read next element
+					previousElementName = reader.LocalName;
 				}
 			}
 

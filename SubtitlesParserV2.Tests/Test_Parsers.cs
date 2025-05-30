@@ -59,7 +59,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
             {
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
                 // Verify for timestamp
                 invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -77,7 +77,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				// NOTE: LRC last subtitle does not have a valid timestamp as per by file format
@@ -96,7 +96,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				// NOTE: TMPlayer last subtitle does not have a valid timestamp as per by file format
@@ -115,7 +115,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -133,7 +133,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -151,7 +151,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -169,7 +169,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -187,7 +187,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -205,7 +205,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				// NOTE: SAMI last subtitle does not have a valid timestamp as per by file format
@@ -224,7 +224,7 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
@@ -242,7 +242,25 @@ namespace SubtitlesParserV2.Tests
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
+
+				// Verify for timestamp
+				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+			}
+			// Verify that every timestamp is valid
+			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+		}
+
+		[Fact]
+		private void Parse_USF()
+		{
+			SubtitleFormatType targetFormatType = SubtitleFormatType.USF;
+
+			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
+			{
+				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+				SubtitleParserResultModel parsingResult = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, targetFormatType, false);
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));

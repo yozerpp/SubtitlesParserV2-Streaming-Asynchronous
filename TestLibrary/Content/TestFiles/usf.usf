@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<USFSubtitles version="1.0">
+	<metadata>
+		<title>Edge Case Test</title>
+		<author>
+			<name>Test Author</name>
+			<email>test@example.com</email>
+		</author>
+		<language code="eng">English</language>
+		<date>2025-05-30</date>
+		<comment>Testing various edge cases in USF format.</comment>
+	</metadata>
+
+	<styles>
+		<style name="Default">
+			<fontstyle face="Arial" size="24" color="#FFFFFF" back-color="#000000" />
+			<position alignment="BottomCenter" vertical-margin="10%" relative-to="Window" />
+		</style>
+		<style name="ItalicRed">
+			<fontstyle italic="yes" color="#FF0000" />
+		</style>
+		<style name="BoldBlue">
+			<fontstyle weight="bold" color="#0000FF" />
+		</style>
+	</styles>
+
+	<subtitles>
+		<!-- Standard subtitle -->
+		<subtitle start="00:00:05.000" stop="00:00:10.000">
+			<text style="Default">Standard subtitle text.</text>
+		</subtitle>
+
+		<!-- Subtitle with duration instead of stop -->
+		<subtitle start="00:00:12.000" duration="00:00:05.000">
+			<text style="ItalicRed">Subtitle with duration attribute.</text>
+		</subtitle>
+
+		<!-- Subtitle with short time format -->
+		<subtitle start="75.500" stop="80.000">
+			<text style="BoldBlue">Subtitle with short time format (ss.mmm).</text>
+		</subtitle>
+
+		<!-- Overlapping subtitles -->
+		<subtitle start="00:01:30.000" stop="00:01:40.000">
+			<text>First overlapping subtitle.</text>
+		</subtitle>
+		<subtitle start="00:01:35.000" stop="00:01:45.000">
+			<text>Second overlapping subtitle.</text>
+		</subtitle>
+
+		<!-- Subtitle with inline styling -->
+		<subtitle start="00:02:00.000" stop="00:02:10.000">
+			<text>
+				<font face="Times New Roman" size="20" color="#00FF00">Inline styled text.</font>
+			</text>
+		</subtitle>
+
+		<!-- Subtitle with speaker attribute -->
+		<subtitle start="00:02:15.000" stop="00:02:20.000">
+			<text speaker="Narrator">Subtitle with speaker attribute.</text>
+		</subtitle>
+
+
+		<!-- Subtitle with multiple lines -->
+		<subtitle start="00:02:20.000" stop="00:02:24.000">
+			<text speaker="Narrator">Subtitle with <br/> two line!!</text>
+		</subtitle>
+		
+		<!-- Subtitle with image -->
+		<subtitle start="00:02:25.000" stop="00:02:30.000">
+			<text>Subtitle with image.</text>
+			<image alignment="TopRight" vertical-margin="10" horizontal-margin="10" colorkey="#FFFFFF">image.bmp</image>
+		</subtitle>
+
+		<!-- Subtitle with karaoke -->
+		<subtitle start="00:02:35.000" stop="00:02:45.000">
+			<karaoke>
+				<k t="700"/>La! La! La! <k t="1000"/>
+				Karokeeeeeeeee <k t="100"/>is <k t="200"/>fun !
+			</karaoke>
+		</subtitle>
+
+		<!-- Subtitle with shape -->
+		<subtitle start="00:02:50.000" stop="00:03:00.000">
+			<text>Subtitle with shape.</text>
+			<shape type="rectangle" x="10" y="10" width="100" height="50" color="#FF00FF" />
+		</subtitle>
+
+		<!-- Subtitle with only image -->
+		<subtitle start="00:03:35.000" stop="00:03:40.000">
+			<image alignment="BottomLeft" vertical-margin="5" horizontal-margin="5" colorkey="#000000">only_image.bmp</image>
+		</subtitle>
+
+		<!-- Subtitle with only karaoke -->
+		<subtitle start="00:03:45.000" stop="00:03:50.000">
+			<karaoke> <k t="250"/>Only <k t="250"/>karaoke <k t="250"/>subtitle
+			</karaoke>
+		</subtitle>
+
+		<!-- Subtitle with nested formatting -->
+		<subtitle start="00:03:55.000" stop="00:04:00.000">
+			<text>
+				<font face="Verdana" size="18" color="#123456">
+					Nested <b>bold</b> and <i>italic</i> text.
+				</font>
+			</text>
+		</subtitle>
+	</subtitles>
+</USFSubtitles>

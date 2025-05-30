@@ -22,7 +22,8 @@ namespace SubtitlesParserV2
 		WebVTT,
 		SAMI,
 		YoutubeXml,
-		MPL2
+		MPL2,
+		USF
 	}
 
 	/// <summary>
@@ -85,7 +86,9 @@ namespace SubtitlesParserV2
 			{ SubtitleFormatType.WebVTT, new SubtitleFormat("WebVTT", new string[] {"vtt"}, new VttParser()) },
 			{ SubtitleFormatType.SAMI, new SubtitleFormat("Synchronized Accessible Media Interchange", new string[] {"smi", "sami"}, new SamiParser()) },
 			{ SubtitleFormatType.YoutubeXml, new SubtitleFormat("YouTube Timed Text (YoutubeXml)", new string[] {"ytt", "srv3", "srv2", "srv1"}, new YttXmlParser()) },
-			{ SubtitleFormatType.MPL2, new SubtitleFormat("MPL2", new string[] {"mpl", "mpl2"}, new Mpl2Parser()) }
+			{ SubtitleFormatType.MPL2, new SubtitleFormat("MPL2", new string[] {"mpl", "mpl2"}, new Mpl2Parser()) },
+			{ SubtitleFormatType.USF, new SubtitleFormat("Universal Subtitle Format", new string[] {"usf"}, new UsfParser()) }
+
 		};
 
 		/// <summary>
