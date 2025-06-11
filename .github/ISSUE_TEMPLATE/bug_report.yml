@@ -49,6 +49,7 @@ body:
       label: Steps to Reproduce
       description: Short code snippet that can cause the issue.
       placeholder: |
+        Code snippet format:
         ```c#
         // Sampe of a short code snippet box.
         // Please add comments!!
