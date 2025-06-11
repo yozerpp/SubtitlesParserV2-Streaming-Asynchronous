@@ -1,0 +1,62 @@
+---
+name: Bug Report
+description: File a bug or issue report.
+title: '[Bug]: '
+labels: ['Type: Bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        *Please add an appropriate title for this issue.*
+
+        Before reporting, search for existing [issues](https://github.com/kitsumed/SubtitlesParserV2/issues).
+        Validate that you are using an up-to-date version, your issue might already be fixed!
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      description: Make sure you've checked (and actually did) all of the below.
+      options:
+        - label: I am using an up-to-date version.
+          required: true
+        - label: I have searched existing [issues](https://github.com/kitsumed/SubtitlesParserV2/issues).
+          required: true
+  - type: input
+    attributes:
+      label: SubtitleParserV2 Version
+      placeholder: v2.2.3
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Operating System & Version
+      placeholder: Windows 11, 24H2
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Description
+      description: Clear and concise description of the problem. Attach screenshots if needed, and include any errors you see.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: Clear and concise description of what you think should happen. What should the the parser results?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Short code snippet that can cause the issue.
+      placeholder: |
+        ```c#
+        // Example short code to reproduce the issue.
+        // Please add comments!!
+        ```
+        **Please attach a sample subtitle file.**
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Provide any logs, if applicable.
