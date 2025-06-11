@@ -50,7 +50,7 @@ body:
       description: Short code snippet that can cause the issue.
       placeholder: |
         ```c#
-        // Example short code to reproduce the issue.
+        // Sampe of a short code snippet box.
         // Please add comments!!
         ```
         **Please attach a sample subtitle file.**
