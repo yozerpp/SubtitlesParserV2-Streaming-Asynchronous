@@ -24,14 +24,15 @@ For more info on subtitles formats, see this page: http://en.wikipedia.org/wiki/
 ### Quickstart
 #### Universal parser
 
-If you don't specify the subtitle format, the SubtitlesParserV2 will try all the registered parsers with the default configuration
+If you don't specify the subtitle format, SubtitlesParserV2 will try all the registered parsers with the default configuration
 
 ```csharp
 using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
 	// Try to parse with all supported parsers
 	SubtitleParserResultModel? result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8)
-	// Access the Subtitles with result.Subtitles
-	// Note that if all parsers fail, the method will return null
+	// Access the Subtitles with: result.Subtitles
+	// Access the Subtitle parser that was used with: result.FormatType
+	// Note that if all parsers fail, the method will return: null
 }
 ```
 
@@ -51,21 +52,24 @@ if (mostLikelyFormat != null)
 
 #### Specific parser (default configuration)
 
-You can use a specific parser if you know the format of the files you parse.
-
+You can use one/multiples specific parser:
 ```csharp
 using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
-	// Try to parse with a specific parser using default configuration
+	// Try to parse with one specific parser using default configuration
 	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, SubtitleFormatType.SubStationAlpha)
-	// Try to parse with a multiple parser using default configuration
+	// Try to parse with multiple parser using default configuration
 	SubtitleParserResultModel result = SubtitleParser.ParseStream(fileStream, Encoding.UTF8, new[] { SubtitleFormatType.SubStationAlpha, SubtitleFormatType.LRC });
 }
 ```
-#### Specific parser (Advanced configuration)
+#### Specific parser (Advanced configurations)
 
 You can also specify advanced configurations for parsers that support it.
->[!NOTE]
-> This is not supported inside `SubtitleParser.ParseStream` methods.
+> [!NOTE]
+> Defining advanced configurations is not possible inside the `SubtitleParser.ParseStream` method. You need to get the parser instance as a `ISubtitlesParser<TConfig>` (interface).
+> **TConfig** refers to the parser name followed by `ParserConfig`. As a example, `MicroDvd` would become `MicroDvdParserConfig`.
+
+> [!CAUTION]
+> When using a parser directly from its instance, **you must handle any thrown errors using a try-catch statement**. Otherwise, your code may fail when the parser cannot parse the given stream.
 
 ```csharp
 // Get the format
