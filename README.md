@@ -36,6 +36,10 @@ using (FileStream fileStream = File.OpenRead(pathToSrtFile)){
 }
 ```
 
+> [!TIP]
+> When accessing subtitles with `result.Subtitles`, if the start or end time **value is negative** (generally `-1`), it means there was no way to determine the timestamp, or the extension failed to parse it correctly (and didn't fail).
+> Having a `-1` does not mean your file is corrupted. This behavior is expected in some formats like **LRC** and **TMPlayer**, where only the start time of a subtitle is provided in the file itself. In these cases, a `-1` at the end time of the very last subtitle is normal. *(Normal because for theses formats, the library use the next subtitle start time to know the previous subtitle end time)*
+
 #### Get Subtitle format by extension (Extensions detection)
 
 ```csharp
