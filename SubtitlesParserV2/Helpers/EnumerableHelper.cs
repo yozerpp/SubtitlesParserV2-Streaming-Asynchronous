@@ -40,14 +40,29 @@ namespace SubtitlesParserV2.Helpers
 				}
 			}
 		}
-		public static async ValueTask<bool> PeekableAsync<T>(this IAsyncEnumerable<T> source)
+		public static async ValueTask<(IAsyncEnumerable<T> source,bool hasElements)> PeekableAsync<T>(this IAsyncEnumerable<T> source)
 		{
 			IAsyncEnumerator<T> enumerator = source.GetAsyncEnumerator();
 			// Try to iterate over the first element
 			var hasElements =await enumerator.MoveNextAsync();
-			await enumerator.DisposeAsync();
 			// Return our Enumerator implementation
-			return hasElements;
+			return (Impl(enumerator, hasElements),hasElements);
+			static async IAsyncEnumerable<T> Impl(IAsyncEnumerator<T> enumerator, bool hasElements)
+			{
+				await using (enumerator)
+				{
+					if (hasElements)
+					{
+						// First iterated element
+						yield return enumerator.Current;
+						// Iterate next elements until end of collection
+						while (await enumerator.MoveNextAsync())
+						{
+							yield return enumerator.Current;
+						}
+					}
+				}
+			}
 		}
 
 		public static async ValueTask<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)

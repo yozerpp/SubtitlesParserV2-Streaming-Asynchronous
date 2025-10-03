@@ -89,8 +89,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			ssaStream.Position = 0;
 
-			var parts = GetPartsAsync(ssaStream, encoding, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(ssaStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 

@@ -303,7 +303,7 @@ namespace SubtitlesParserV2
 		{
 			if (!stream.CanRead)
 			{
-				throw new FormatException("Cannot parse a non-readable stream");
+				throw new ArgumentException("Cannot parse a non-readable stream");
 			}
 			Stream seekableStream = stream;
 			wasStreamCopied = false;

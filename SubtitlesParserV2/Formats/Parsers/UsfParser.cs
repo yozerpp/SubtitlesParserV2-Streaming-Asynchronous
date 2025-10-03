@@ -69,8 +69,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			xmlStream.Position = 0;
 
-			var parts = GetPartsAsync(xmlStream, encoding, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(xmlStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 
@@ -113,7 +113,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						if (!reader.Name.Equals("USFSubtitles", StringComparison.OrdinalIgnoreCase))
 						{
-							throw new FormatException("Stream is not in a valid USF format (root element is not USFSubtitles)");
+							throw new ArgumentException("Stream is not in a valid USF format (root element is not USFSubtitles)");
 						}
 						rootElementValidated = true;
 					}
@@ -154,7 +154,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						if (!reader.Name.Equals("USFSubtitles", StringComparison.OrdinalIgnoreCase))
 						{
-							throw new FormatException("Stream is not in a valid USF format (root element is not USFSubtitles)");
+							throw new ArgumentException("Stream is not in a valid USF format (root element is not USFSubtitles)");
 						}
 						rootElementValidated = true;
 					}

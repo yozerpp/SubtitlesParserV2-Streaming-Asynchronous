@@ -95,8 +95,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			samiStream.Position = 0;
 
-			var parts = GetPartsAsync(samiStream, encoding, config, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(samiStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 
@@ -176,7 +176,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			string? line = reader.ReadLine();
 			// Ensure the file is a sami file by verifying the first line
 			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
-				throw new FormatException("Could not find SAMI element at line 1.");
+				throw new ArgumentException("Could not find SAMI element at line 1.");
 
 			// Loop until last line was processed
 			do
@@ -280,7 +280,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			string? line = await reader.ReadLineAsync();
 			// Ensure the file is a sami file by verifying the first line
 			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
-				throw new FormatException("Could not find SAMI element at line 1.");
+				throw new ArgumentException("Could not find SAMI element at line 1.");
 
 			// Loop until last line was processed
 			do

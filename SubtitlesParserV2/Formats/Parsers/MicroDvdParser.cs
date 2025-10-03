@@ -123,8 +123,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			subStream.Position = 0;
 
-			var parts = GetPartsAsync(subStream, encoding, config, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(subStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 

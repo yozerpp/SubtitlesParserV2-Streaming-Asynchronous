@@ -118,8 +118,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			lrcStream.Position = 0;
 
-			var parts = GetPartsAsync(lrcStream, encoding, config, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(lrcStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 
@@ -197,7 +197,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				{
 					searchTimeout--;
 					// We didn't find the first valid line and reached the search timeout
-					if (searchTimeout <= 0) throw new FormatException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
+					if (searchTimeout <= 0) throw new ArgumentException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
 					continue;
 				}
 
@@ -261,7 +261,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				{
 					searchTimeout--;
 					// We didn't find the first valid line and reached the search timeout
-					if (searchTimeout <= 0) throw new FormatException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
+					if (searchTimeout <= 0) throw new ArgumentException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
 					continue;
 				}
 

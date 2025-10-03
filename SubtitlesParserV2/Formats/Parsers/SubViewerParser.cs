@@ -85,8 +85,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			subStream.Position = 0;
 
-			var parts = GetPartsAsync(subStream, encoding, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(subStream, encoding, cancellationToken);
+			var (parts,partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 
@@ -224,7 +224,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			else
 			{
-				throw new FormatException("Stream is not in a valid SubViewer format");
+				throw new ArgumentException("Stream is not in a valid SubViewer format");
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			else
 			{
-				throw new FormatException("Stream is not in a valid SubViewer format");
+				throw new ArgumentException("Stream is not in a valid SubViewer format");
 			}
 		}
 

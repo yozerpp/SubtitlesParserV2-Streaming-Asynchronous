@@ -84,8 +84,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			vttStream.Position = 0;
 
-			var parts = GetPartsAsync(vttStream, encoding, cancellationToken);
-			var partsAny = await parts.PeekableAsync();
+			var partsOld = GetPartsAsync(vttStream, encoding, cancellationToken);
+			var (parts, partsAny) = await partsOld.PeekableAsync();
 			if (!partsAny)
 				throw new FormatException(BadFormatMsg);
 
@@ -123,12 +123,13 @@ namespace SubtitlesParserV2.Formats.Parsers
 				if (part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
 				{
 					// Return an empty subtitle for the header
-					return new SubtitleModel()
-					{
-						StartTime = -1,
-						EndTime = -1,
-						Lines = new List<string>()
-					};
+					return null;
+					// return new SubtitleModel()
+					// {
+					// 	StartTime = -1,
+					// 	EndTime = -1,
+					// 	Lines = new List<string>()
+					// };
 				}
 				else
 				{

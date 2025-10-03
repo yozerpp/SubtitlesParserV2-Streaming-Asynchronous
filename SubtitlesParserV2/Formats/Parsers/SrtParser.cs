@@ -81,8 +81,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			// Create a StreamReader & configure it to leave the main srtStream open when disposing
 
-			var srtSubParts = GetPartsAsync(srtStream, encoding, cancellationToken); // This is a lazy list, not yet into memory
-			var srtSubPartsAny = await srtSubParts.PeekableAsync();
+			var srtSubPartsOld = GetPartsAsync(srtStream, encoding, cancellationToken); // This is a lazy list, not yet into memory
+			var (srtSubParts, srtSubPartsAny) = await srtSubPartsOld.PeekableAsync();
 			if(!srtSubPartsAny) throw new FormatException(NoPartsMsg);
 			await foreach (string part in srtSubParts)
 				yield return ParsePart(part, srtSubPartsAny);
