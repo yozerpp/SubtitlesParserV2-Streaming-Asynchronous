@@ -6,6 +6,7 @@ using SubtitlesParserV2.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace SubtitlesParserV2
 		/// <param name="stream">The subtitle stream</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel? ParseStream(Stream stream)
+		public static SubtitleParserResultModel ParseStream(Stream stream)
 		{
 			// we default encoding to UTF-8
 			return ParseStream(stream, Encoding.UTF8);
@@ -51,7 +52,7 @@ namespace SubtitlesParserV2
 		/// <param name="selectedFormat">If specified, will only try the selected parsers.</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel? ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat)
+		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, SubtitleFormatType selectedFormat)
 		{
 			return ParseStream(stream, encoding, new SubtitleFormatType[] { selectedFormat });
 		}
@@ -69,14 +70,14 @@ namespace SubtitlesParserV2
 		/// <param name="selectedFormats">If specified, will only try the selected parsers.</param>
 		/// <returns>The corresponding list of SubtitleItem, null if parsing failed</returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static SubtitleParserResultModel? ParseStream(Stream stream, Encoding encoding, IEnumerable<SubtitleFormatType>? selectedFormats = null)
+		public static SubtitleParserResultModel ParseStream(Stream stream, Encoding encoding, IEnumerable<SubtitleFormatType>? selectedFormats = null)
 		{
 			// test if stream if readable
 			var seekableStream = PrepareStream(stream, out var wasStreamCopied);
 
 			IEnumerable<SubtitleFormat> subtitleFormatToRun = GetFormatsToRun(selectedFormats);
 			//replace ignoreException with delayed throwing.
-			Exception lastException = null;
+			ExceptionDispatchInfo lastException = null;
 			foreach (SubtitleFormat subtitleFormat in subtitleFormatToRun)
 			{
 				try
@@ -88,13 +89,13 @@ namespace SubtitlesParserV2
 					if (wasStreamCopied)
 					{
 						// Ensure the stream copy is disposed
-						seekableStream?.Dispose();
+						seekableStream.Dispose();
 					}
 					return new SubtitleParserResultModel(subtitleFormat.FormatType,items); // end method execution
 				}
 				catch (Exception e) // If ignoreException is true, we ignore it and try the next parser
 				{
-					lastException = e;
+					lastException = ExceptionDispatchInfo.Capture(e);
 				}
 			}
 
@@ -102,9 +103,10 @@ namespace SubtitlesParserV2
 			if (wasStreamCopied)
 			{
 				// Ensure the stream copy is disposed
-				seekableStream?.Dispose();
+				seekableStream.Dispose();
 			}
-			throw lastException;
+			lastException?.Throw();
+			throw null;
 		}
 
 
@@ -150,7 +152,7 @@ namespace SubtitlesParserV2
 
 			// By default, we run all of the available formats
 			IEnumerable<SubtitleFormat> subtitleFormatToRun = GetFormatsToRun(selectedFormats);
-			Exception lastException = null;
+			ExceptionDispatchInfo lastException = null;
 			foreach (SubtitleFormat subtitleFormat in subtitleFormatToRun)
 			{
 				try
@@ -168,7 +170,7 @@ namespace SubtitlesParserV2
 				}
 				catch (Exception e) // If ignoreException is true, we ignore it and try the next parser
 				{
-					lastException = e;
+					lastException = ExceptionDispatchInfo.Capture(e);
 				}
 			}
 
@@ -179,7 +181,8 @@ namespace SubtitlesParserV2
 				await seekableStream.DisposeAsync();
 			}
 
-			throw lastException;
+			lastException?.Throw();
+			throw null;
 		}
 		/// <summary>
 		/// Get a consuming parser from the subtitle content, to read and process the subtitle items in a single iteration. Use UTF-8 encoding and try to parse with all subtitle formats.
@@ -204,7 +207,7 @@ namespace SubtitlesParserV2
 		{
 			stream = PrepareStream(stream, out bool streamCopied);
 			var formatsToRun = GetFormatsToRun(selectedFormats);
-			Exception lastException = null;
+			ExceptionDispatchInfo lastException = null;
 			foreach (var subtitleFormat in formatsToRun)
 			{
 				try
@@ -222,7 +225,7 @@ namespace SubtitlesParserV2
 				}
 				catch (Exception e)
 				{
-					lastException = e;
+					lastException = ExceptionDispatchInfo.Capture(e);
 				}
 			}
 
@@ -230,7 +233,8 @@ namespace SubtitlesParserV2
 			{
 				stream.Dispose();
 			}
-			throw lastException;
+			lastException.Throw();
+			throw null;
 		}
 		/// <summary>
 		/// Get a asynchronous consuming parser from the subtitle content, to read and process the subtitle items in a single iteration asynchronously. Use UTF-8 encoding and try to parse with all subtitle formats.
@@ -260,7 +264,7 @@ namespace SubtitlesParserV2
 		{
 			stream =  PrepareStream(stream, out bool streamCopied);
 			var formatsToRun = GetFormatsToRun(selectedFormats);
-			Exception lastException = null;
+			ExceptionDispatchInfo lastException = null;
 			foreach (var subtitleFormat in formatsToRun)
 			{
 				try
@@ -279,12 +283,13 @@ namespace SubtitlesParserV2
 				}
 				catch (Exception e)
 				{
-					lastException = e;
+					lastException = ExceptionDispatchInfo.Capture(e);
 				}
 			}
 			if(streamCopied)
 				stream.Dispose();
-			throw lastException;
+			lastException.Throw();
+			throw null;
 		}
 		private static IEnumerable<SubtitleFormat> GetFormatsToRun(IEnumerable<SubtitleFormatType>? selectedFormats)
 		{
