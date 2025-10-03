@@ -1,11 +1,14 @@
-﻿using SubtitlesParserV2.Helpers;
+using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SubtitlesParserV2.Formats.Parsers
 {
@@ -20,47 +23,144 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// [604][640]Sample 1
 	/// [650][686]Sample 2!
 	/// -->
-	internal class Mpl2Parser : ISubtitlesParser
+	internal class Mpl2Parser : ISubtitlesParser<Mpl2SubtitlePart>
 	{
 		// Format [00][00] and separate by two group
 		private static readonly Regex TimestampRegex = new Regex(@"\[(?<START>\d+)]\[(?<END>\d+)]", RegexOptions.Compiled);
+
+		private const string BadFormatMsg = "Stream is not in a valid Mpl2 format";
+
 		public List<SubtitleModel> ParseStream(Stream mpl2Stream, Encoding encoding)
+		{
+			var ret = ParseAsEnumerable(mpl2Stream, encoding).ToList();
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream mpl2Stream, Encoding encoding)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(mpl2Stream);
 			// seek the beginning of the stream
 			mpl2Stream.Position = 0;
 
-			// Create a StreamReader & configure it to leave the main stream open when disposing
-			using StreamReader reader = new StreamReader(mpl2Stream, encoding, true, 1024, true);
+			IEnumerable<Mpl2SubtitlePart> parts = GetParts(mpl2Stream, encoding).Peekable(out var partsAny);
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
 
-			List<SubtitleModel> items = new List<SubtitleModel>();
+			bool first = true;
+			foreach (Mpl2SubtitlePart part in parts)
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
 
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream mpl2Stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(mpl2Stream);
+			// seek the beginning of the stream
+			mpl2Stream.Position = 0;
+
+			var parts = GetPartsAsync(mpl2Stream, encoding, cancellationToken);
+			var partsAny = await parts.PeekableAsync();
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			await foreach (Mpl2SubtitlePart part in parts.WithCancellation(cancellationToken))
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
+
+		public IEnumerable<Mpl2SubtitlePart> GetParts(Stream stream, Encoding encoding)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			foreach (var part in GetMpl2SubtitleParts(reader))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<Mpl2SubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			await foreach (var part in GetMpl2SubtitlePartsAsync(reader, cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public SubtitleModel ParsePart(Mpl2SubtitlePart part, bool isFirstPart)
+		{
+			return new SubtitleModel()
+			{
+				StartTime = part.StartTime,
+				EndTime = part.EndTime,
+				Lines = part.Lines
+			};
+		}
+
+		/// <summary>
+		/// Enumerates the subtitle parts in an MPL2 file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the MPL2 file</param>
+		/// <returns>An IEnumerable of Mpl2SubtitlePart objects</returns>
+		private static IEnumerable<Mpl2SubtitlePart> GetMpl2SubtitleParts(TextReader reader)
+		{
 			string? currentLine = reader.ReadLine();
 			// Loop until we reach end of file
-			while (currentLine != null) 
+			while (currentLine != null)
 			{
 				(int lineStartms, int lineEndms) = ParseMpl2Timestamp(currentLine);
 				List<string> lineContent = ParseMpl2Line(currentLine);
-				items.Add(new SubtitleModel()
+
+				yield return new Mpl2SubtitlePart
 				{
 					StartTime = lineStartms,
 					EndTime = lineEndms,
 					Lines = lineContent
-				});
-				currentLine = reader.ReadLine();
-			}
+				};
 
-			// Ensure we at least found 1 valid item
-			if (items.Count >= 1)
-			{
-				return items;
-			}
-			else
-			{
-				throw new ArgumentException("Stream is not in a valid Mpl2 format");
+				currentLine = reader.ReadLine();
 			}
 		}
 
+		/// <summary>
+		/// Asynchronously enumerates the subtitle parts in an MPL2 file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the MPL2 file</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>An IAsyncEnumerable of Mpl2SubtitlePart objects</returns>
+		private static async IAsyncEnumerable<Mpl2SubtitlePart> GetMpl2SubtitlePartsAsync(TextReader reader, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			string? currentLine = await reader.ReadLineAsync();
+			// Loop until we reach end of file
+			while (currentLine != null)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+
+				(int lineStartms, int lineEndms) = ParseMpl2Timestamp(currentLine);
+				List<string> lineContent = ParseMpl2Line(currentLine);
+
+				yield return new Mpl2SubtitlePart
+				{
+					StartTime = lineStartms,
+					EndTime = lineEndms,
+					Lines = lineContent
+				};
+
+				currentLine = await reader.ReadLineAsync();
+			}
+		}
 
 		/// <summary>
 		/// Parse the content of one Mpl2 line (assuming '|' new line character is used)
@@ -92,7 +192,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <param name="line"></param>
 		/// <returns>The start and end time in milliseconds of the line</returns>
 		/// <exception cref="ArgumentException">When line is not in a valid format</exception>
-		private static (int startTime, int endTime) ParseMpl2Timestamp(string line) 
+		private static (int startTime, int endTime) ParseMpl2Timestamp(string line)
 		{
 			// Parse the timestamp
 			Match matchs = TimestampRegex.Match(line);
@@ -110,5 +210,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			return ((int)new TimeSpan(0, 0, startTime).TotalMilliseconds, (int)new TimeSpan(0, 0, endTime).TotalMilliseconds);
 		}
+	}
+
+	/// <summary>
+	/// Represents a parsed MPL2 subtitle part before conversion to SubtitleModel
+	/// </summary>
+	internal class Mpl2SubtitlePart
+	{
+		public int StartTime { get; set; }
+		public int EndTime { get; set; }
+		public List<string> Lines { get; set; } = new List<string>();
 	}
 }
