@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace SubtitlesParserV2.Tests
@@ -51,11 +52,12 @@ namespace SubtitlesParserV2.Tests
 		// --------------------------------------------------------------------------------------------------------------------------
 
 		[Fact]
-        private void Parse_SubRip()
+        private async Task Parse_SubRip()
         {
 			SubtitleFormatType targetFormatType = SubtitleFormatType.SubRip;
 
             Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+            Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
             {
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -63,17 +65,24 @@ namespace SubtitlesParserV2.Tests
 
                 // Verify for timestamp
                 invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
             // Verify that every timestamp is valid
             Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+            Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void  Parse_LRC()
+		private async Task Parse_LRC()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.LRC;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -82,17 +91,24 @@ namespace SubtitlesParserV2.Tests
 				// Verify for timestamp
 				// NOTE: LRC last subtitle does not have a valid timestamp as per by file format
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_TMPlayer()
+		private async Task Parse_TMPlayer()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.TMPlayer;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -101,17 +117,24 @@ namespace SubtitlesParserV2.Tests
 				// Verify for timestamp
 				// NOTE: TMPlayer last subtitle does not have a valid timestamp as per by file format
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_MicroDvd()
+		private async Task Parse_MicroDvd()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.MicroDvd;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -119,17 +142,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_SubViewer()
+		private async Task Parse_SubViewer()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.SubViewer;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -137,17 +167,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_SubStationAlpha()
+		private async Task Parse_SubStationAlpha()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.SubStationAlpha;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -155,17 +192,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_TTML()
+		private async Task Parse_TTML()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.TTML;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -173,17 +217,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_WebVTT()
+		private async Task Parse_WebVTT()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.WebVTT;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -191,17 +242,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_SAMI()
+		private async Task Parse_SAMI()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.SAMI;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -210,17 +268,24 @@ namespace SubtitlesParserV2.Tests
 				// Verify for timestamp
 				// NOTE: SAMI last subtitle does not have a valid timestamp as per by file format
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_YoutubeXml()
+		private async Task Parse_YoutubeXml()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.YoutubeXml;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -228,17 +293,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_MPL2()
+		private async Task Parse_MPL2()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.MPL2;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -246,17 +318,24 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_USF()
+		private async Task Parse_USF()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.USF;
 
 			Dictionary<string, int> invalidTimestamps = new Dictionary<string, int>();
+			Dictionary<string, int> invalidTimestampsAsync = new Dictionary<string, int>();
 			foreach (string filePath in GetFilesRelatedToParser(targetFormatType))
 			{
 				using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -264,9 +343,15 @@ namespace SubtitlesParserV2.Tests
 
 				// Verify for timestamp
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
+
+				// Test async version
+				fileStream.Position = 0;
+				SubtitleParserResultModel parsingResultAsync = await SubtitleParser.ParseStreamAsync(fileStream, Encoding.UTF8, targetFormatType);
+				invalidTimestampsAsync.Add(filePath, CountInvalidTimestamps(parsingResultAsync.Subtitles));
 			}
 			// Verify that every timestamp is valid
 			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
+			Assert.All(invalidTimestampsAsync, entry => Assert.Equal(0, entry.Value));
 		}
 	}
 }
