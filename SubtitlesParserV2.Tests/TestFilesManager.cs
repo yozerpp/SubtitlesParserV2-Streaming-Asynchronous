@@ -10,7 +10,7 @@ namespace SubtitlesParserV2.Tests
         {
 			// Get test files from the TestLibrary project
             // from debug/release folder to project root > test library
-			TestFilesPath = GetFiles(@"..\..\..\..\TestLibrary\Content\TestFiles");
+			TestFilesPath = GetFiles(Path.GetFullPath(string.Join(Path.DirectorySeparatorChar,"..","..", "..","..", "TestLibrary", "Content", "TestFiles")));
         }
 
         private static string[] GetFiles(string relativePath) => Directory.GetFiles(Path.GetFullPath(relativePath));
