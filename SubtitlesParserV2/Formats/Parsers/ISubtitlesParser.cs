@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SubtitlesParserV2.Models;
 
 namespace SubtitlesParserV2.Formats.Parsers
@@ -10,7 +12,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// Use <see cref="ISubtitlesParser{TConfig}"/> to overwrite the default configuration of a specific parser,
 	/// if available.
 	/// </summary>
-	public interface ISubtitlesParser
+	public interface ISubtitlesParser<TPart>
 	{
 		/// <summary>
 		/// Parses a subtitles file stream in a list of SubtitleItem using the default configuration.
@@ -27,6 +29,12 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <param name="encoding">The stream encoding (if known)</param>
 		/// <returns>The corresponding list of SubtitleItems</returns>
 		List<SubtitleModel> ParseStream(Stream stream, Encoding encoding);
+		Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken);
+		IEnumerable<SubtitleModel> ParseAsEnumerable(Stream srtStream, Encoding encoding);
+		IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken);
+		IEnumerable<TPart> GetParts(TextReader reader);
+		IAsyncEnumerable<TPart> GetPartsAsync(TextReader reader, CancellationToken cancellationToken = default);
+		SubtitleModel ParsePart(TPart part, bool isFirstPart);
 	}
 
 	/// <summary>
@@ -44,7 +52,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// Now ensure <strong>microDvdParserInstance</strong> is not null (in case your ParserInstance does not support <![CDATA[ISubtitlesParser<TConfig>)]]>
 	/// </para>
 	/// </summary>
-	public interface ISubtitlesParser<TConfig> // where TConfig : class // Restrict TConfig to a class type to allow it to be a nullable Type
+	public interface ISubtitlesParser<TPart,TConfig> // where TConfig : class // Restrict TConfig to a class type to allow it to be a nullable Type
 	{
 		/// <summary>
 		/// Parses a subtitles file stream in a list of SubtitleItem using a specific configuration.
@@ -57,5 +65,5 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// <param name="configuration">The configuration for the parser.</param>
 		/// <returns>The corresponding list of SubtitleItems</returns>
 		List<SubtitleModel> ParseStream(Stream stream, Encoding encoding, TConfig configuration);
-    }
+	}
 }
