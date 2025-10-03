@@ -36,7 +36,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// <remarks>
 	/// If no framerate are found, will default to 25. To force specific settings, you can use
 	/// <see cref="SubtitleFormat.GetFormat(SubtitleFormatType)"/> and define the <see cref="SubtitleFormat.ParserInstance"/>
-	/// as a <see cref="ISubtitlesParser{MicroDvdParserConfig}"/>.
+	/// as a <see cref="ISubtitlesParserWithConfig{MicroDvdParserConfig}"/>.
 	/// </remarks>
 	/// <!--
 	/// Sources:
