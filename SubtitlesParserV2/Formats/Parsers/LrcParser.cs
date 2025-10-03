@@ -81,7 +81,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream lrcStream, Encoding encoding)
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream lrcStream, Encoding encoding)
 		{
 			return ParseAsEnumerable(lrcStream, encoding, new LrcParserConfig());
 		}
@@ -104,7 +104,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream lrcStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream lrcStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			await foreach (var item in ParseAsEnumerableAsync(lrcStream, encoding, new LrcParserConfig(), cancellationToken))
 			{

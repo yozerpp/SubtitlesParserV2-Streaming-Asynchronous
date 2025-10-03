@@ -30,19 +30,19 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream tmpStream, Encoding encoding)
 		{
-			var ret = ParseAsEnumerable(tmpStream, encoding).ToList();
+			var ret = ParseStreamConsuming(tmpStream, encoding).ToList();
 			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
-			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
 			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream tmpStream, Encoding encoding)
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream tmpStream, Encoding encoding)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(tmpStream);
 			// seek the beginning of the stream
@@ -60,7 +60,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream tmpStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream tmpStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(tmpStream);
 			// seek the beginning of the stream

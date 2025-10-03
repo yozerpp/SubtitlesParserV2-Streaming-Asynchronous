@@ -51,7 +51,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// {509}{629}Drink up water yo ho!
 	/// {635}{755}We eat and don't give a hoot.
 	/// -->
-	internal class MicroDvdParser : ISubtitlesParser<MicroDvdSubtitlePart, MicroDvdParserConfig>
+	internal class MicroDvdParser : ISubtitlesParserWithConfig<MicroDvdSubtitlePart, MicroDvdParserConfig>
 	{
 		private static readonly Type CurrentType = typeof(MicroDvdParser);
 		// Alternative for static class, create a logger with the full namespace name
@@ -86,7 +86,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream subStream, Encoding encoding)
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream subStream, Encoding encoding)
 		{
 			return ParseAsEnumerable(subStream, encoding, new MicroDvdParserConfig());
 		}
@@ -109,7 +109,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream subStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream subStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			await foreach (var item in ParseAsEnumerableAsync(subStream, encoding, new MicroDvdParserConfig(), cancellationToken))
 			{

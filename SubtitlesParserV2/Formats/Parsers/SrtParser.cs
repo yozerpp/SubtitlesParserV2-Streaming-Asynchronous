@@ -43,27 +43,26 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream srtStream, Encoding encoding)
 		{
-			var ret = ParseAsEnumerable(srtStream, encoding).ToList();
+			var ret = ParseStreamConsuming(srtStream, encoding).ToList();
 			if(ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
-			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
 			if(ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream srtStream, Encoding encoding)
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream srtStream, Encoding encoding)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(srtStream);
 			// seek the beginning of the srtStream
 			srtStream.Position = 0;
 
 			// Create a StreamReader & configure it to leave the main srtStream open when disposing
-			using StreamReader reader = new StreamReader(srtStream, encoding, true, 1024, true);
-			IEnumerable<string> srtSubParts = GetParts(reader).Peekable(out var srtSubPartsAny); // This is a lazy list, not yet into memory
+			IEnumerable<string> srtSubParts = GetParts(srtStream, encoding).Peekable(out var srtSubPartsAny); // This is a lazy list, not yet into memory
 			if(!srtSubPartsAny)
 				throw new FormatException(NoPartsMsg);
 			bool first = true;
@@ -74,16 +73,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream srtStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream srtStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(srtStream);
 			// seek the beginning of the srtStream
 			srtStream.Position = 0;
 
 			// Create a StreamReader & configure it to leave the main srtStream open when disposing
-			using StreamReader reader = new StreamReader(srtStream, encoding, true, 1024, true);
 
-			var srtSubParts = GetPartsAsync(reader, cancellationToken); // This is a lazy list, not yet into memory
+			var srtSubParts = GetPartsAsync(srtStream, encoding, cancellationToken); // This is a lazy list, not yet into memory
 			var srtSubPartsAny = await srtSubParts.PeekableAsync();
 			if(!srtSubPartsAny) throw new FormatException(NoPartsMsg);
 			await foreach (string part in srtSubParts)
@@ -101,10 +99,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// Altocumulus clouds occur between six thousand
 		/// </code>
 		/// </summary>
-		/// <param name="reader">The textreader associated with the srt file</param>
 		/// <returns>An IEnumerable(string) object containing all the subtitle parts</returns>
-		public IEnumerable<string> GetParts(TextReader reader)
+		public IEnumerable<string> GetParts(Stream stream, Encoding encoding)
 		{
+			var reader = new StreamReader(stream, encoding, true, 1024, true);
 			string? line;
 			StringBuilder stringBuilder = new StringBuilder();
 			while ((line = reader.ReadLine()) != null)
@@ -131,11 +129,12 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<string> GetPartsAsync(TextReader reader,[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		public async IAsyncEnumerable<string> GetPartsAsync(Stream stream, Encoding encoding,[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
 			string? line;
+			var reader = new StreamReader(stream, encoding, true, 1024, true);
 			StringBuilder stringBuilder = new StringBuilder();
-			while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
+			while ((line = await reader.ReadLineAsync()) != null)
 			{
 				if (string.IsNullOrEmpty(line.Trim()))
 				{

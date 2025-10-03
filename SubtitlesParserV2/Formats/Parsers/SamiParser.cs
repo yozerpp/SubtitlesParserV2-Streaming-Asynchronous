@@ -35,7 +35,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// https://en.wikipedia.org/wiki/SAMI
 	/// https://docs.fileformat.com/video/sami/
 	/// -->
-	internal class SamiParser : ISubtitlesParser<SamiSubtitlePart>, ISubtitlesParser<SamiSubtitlePart, SamiParserConfig>
+	internal class SamiParser : ISubtitlesParserWithConfig<SamiSubtitlePart, SamiParserConfig>
 	{
 		private const string BadFormatMsg = "Stream is not in a valid Sami format";
 
@@ -58,7 +58,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream samiStream, Encoding encoding)
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream samiStream, Encoding encoding)
 		{
 			return ParseAsEnumerable(samiStream, encoding, new SamiParserConfig());
 		}
@@ -81,7 +81,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream samiStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream samiStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			await foreach (var item in ParseAsEnumerableAsync(samiStream, encoding, new SamiParserConfig(), cancellationToken))
 			{
@@ -148,7 +148,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 				Lines = part.Lines
 			};
 		}
-
+		public SubtitleModel ParsePart(SamiSubtitlePart part, bool isFirstPart, SamiParserConfig config)
+		{
+			return new SubtitleModel()
+			{
+				StartTime = part.StartTime,
+				EndTime = part.EndTime,
+				Lines = part.Lines
+			};
+		}
 		/// <summary>
 		/// Enumerates the subtitle parts in a SAMI file.
 		/// </summary>
