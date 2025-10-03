@@ -47,14 +47,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream samiStream, Encoding encoding, SamiParserConfig config)
 		{
 			var ret = ParseAsEnumerable(samiStream, encoding, config).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseAsEnumerableAsync(stream, encoding, new SamiParserConfig(), cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -71,7 +71,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<SamiSubtitlePart> parts = GetParts(samiStream, encoding, config).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (SamiSubtitlePart part in parts)
@@ -98,7 +98,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(samiStream, encoding, config, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (SamiSubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -176,7 +176,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			string? line = reader.ReadLine();
 			// Ensure the file is a sami file by verifying the first line
 			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
-				throw new ArgumentException("Could not find SAMI element at line 1.");
+				throw new FormatException("Could not find SAMI element at line 1.");
 
 			// Loop until last line was processed
 			do
@@ -280,7 +280,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			string? line = await reader.ReadLineAsync();
 			// Ensure the file is a sami file by verifying the first line
 			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
-				throw new ArgumentException("Could not find SAMI element at line 1.");
+				throw new FormatException("Could not find SAMI element at line 1.");
 
 			// Loop until last line was processed
 			do

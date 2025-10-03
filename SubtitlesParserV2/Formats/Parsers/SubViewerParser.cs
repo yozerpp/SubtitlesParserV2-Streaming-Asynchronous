@@ -50,14 +50,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(subStream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -69,7 +69,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<SubViewerSubtitlePart> parts = GetParts(subStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (SubViewerSubtitlePart part in parts)
@@ -88,7 +88,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(subStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (SubViewerSubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -224,7 +224,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			else
 			{
-				throw new ArgumentException("Stream is not in a valid SubViewer format");
+				throw new FormatException("Stream is not in a valid SubViewer format");
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			else
 			{
-				throw new ArgumentException("Stream is not in a valid SubViewer format");
+				throw new FormatException("Stream is not in a valid SubViewer format");
 			}
 		}
 

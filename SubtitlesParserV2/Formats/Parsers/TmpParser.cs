@@ -31,14 +31,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream tmpStream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(tmpStream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -50,7 +50,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<TmpSubtitlePart> parts = GetParts(tmpStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (TmpSubtitlePart part in parts)
@@ -69,7 +69,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(tmpStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (TmpSubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -119,7 +119,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// (Since the nextLine start time is also the end time for the lastLine)
 			string? lastLine = reader.ReadLine();
 			if (lastLine == null)
-				throw new ArgumentException("Stream reached end of file on first reading attempt.");
+				throw new FormatException("Stream reached end of file on first reading attempt.");
 
 			// Loop until last line was processed (is null), then do a final loop
 			do
@@ -166,7 +166,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// (Since the nextLine start time is also the end time for the lastLine)
 			string? lastLine = await reader.ReadLineAsync();
 			if (lastLine == null)
-				throw new ArgumentException("Stream reached end of file on first reading attempt.");
+				throw new FormatException("Stream reached end of file on first reading attempt.");
 
 			// Loop until last line was processed (is null), then do a final loop
 			do
@@ -222,7 +222,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Ensure they is at least 4 separations on the line
 			// NOTE: We could default to defining time to -1 when invalid, however due to the file having almost no unique feature,
 			// a invalid timestamp is the best way to detect that the current stream is not in TMP format and stop parsing early
-			if (parts.Length < 4) throw new ArgumentException("Stream line is not in a valid TMP format.");
+			if (parts.Length < 4) throw new FormatException("Stream line is not in a valid TMP format.");
 
 			int hours = 0;
 			int minutes = 0;
@@ -230,7 +230,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Parse time, throw error if it fail
 			if (!int.TryParse(parts[0], out hours) || !int.TryParse(parts[1], out minutes) || !int.TryParse(parts[2], out seconds))
 			{
-				throw new ArgumentException("Stream line has invalid characters at positions used for time. Stream is not a valid TMP format.");
+				throw new FormatException("Stream line has invalid characters at positions used for time. Stream is not a valid TMP format.");
 			}
 			// Return time in MS along with line content
 			return ((int)new TimeSpan(hours, minutes, seconds).TotalMilliseconds, parts[3].Split('|').Select(line => line.Trim()).ToList());

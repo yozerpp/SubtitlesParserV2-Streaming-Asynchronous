@@ -75,14 +75,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding, MicroDvdParserConfig config)
 		{
 			var ret = ParseAsEnumerable(subStream, encoding, config).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseAsEnumerableAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -99,7 +99,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<MicroDvdSubtitlePart> parts = GetParts(subStream, encoding, config).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (MicroDvdSubtitlePart part in parts)
@@ -126,7 +126,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(subStream, encoding, config, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (MicroDvdSubtitlePart part in parts.WithCancellation(cancellationToken))

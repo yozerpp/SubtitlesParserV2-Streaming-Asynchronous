@@ -34,14 +34,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream xmlStream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(xmlStream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -53,7 +53,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<UsfSubtitlePart> parts = GetParts(xmlStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (UsfSubtitlePart part in parts)
@@ -72,7 +72,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(xmlStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (UsfSubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -113,7 +113,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						if (!reader.Name.Equals("USFSubtitles", StringComparison.OrdinalIgnoreCase))
 						{
-							throw new ArgumentException("Stream is not in a valid USF format (root element is not USFSubtitles)");
+							throw new FormatException("Stream is not in a valid USF format (root element is not USFSubtitles)");
 						}
 						rootElementValidated = true;
 					}
@@ -154,7 +154,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						if (!reader.Name.Equals("USFSubtitles", StringComparison.OrdinalIgnoreCase))
 						{
-							throw new ArgumentException("Stream is not in a valid USF format (root element is not USFSubtitles)");
+							throw new FormatException("Stream is not in a valid USF format (root element is not USFSubtitles)");
 						}
 						rootElementValidated = true;
 					}

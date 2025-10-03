@@ -54,14 +54,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream ssaStream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(ssaStream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -73,7 +73,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<SsaSubtitlePart> parts = GetParts(ssaStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (SsaSubtitlePart part in parts)
@@ -92,7 +92,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(ssaStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (SsaSubtitlePart part in parts.WithCancellation(cancellationToken))

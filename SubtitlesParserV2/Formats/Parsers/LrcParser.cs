@@ -70,14 +70,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream lrcStream, Encoding encoding, LrcParserConfig configuration)
 		{
 			var ret = ParseAsEnumerable(lrcStream, encoding, configuration).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseAsEnumerableAsync(stream, encoding, new LrcParserConfig(), cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -94,7 +94,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<LrcSubtitlePart> parts = GetParts(lrcStream, encoding, config).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (LrcSubtitlePart part in parts)
@@ -121,7 +121,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(lrcStream, encoding, config, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (LrcSubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -197,7 +197,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				{
 					searchTimeout--;
 					// We didn't find the first valid line and reached the search timeout
-					if (searchTimeout <= 0) throw new ArgumentException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
+					if (searchTimeout <= 0) throw new FormatException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
 					continue;
 				}
 
@@ -261,7 +261,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				{
 					searchTimeout--;
 					// We didn't find the first valid line and reached the search timeout
-					if (searchTimeout <= 0) throw new ArgumentException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
+					if (searchTimeout <= 0) throw new FormatException("Stream is not in a valid Lrc format (could not find valid timestamp format inside given line timeout)");
 					continue;
 				}
 

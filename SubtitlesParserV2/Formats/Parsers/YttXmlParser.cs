@@ -27,14 +27,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream xmlStream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(xmlStream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -46,7 +46,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<YttXmlSubtitlePart> parts = GetParts(xmlStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (YttXmlSubtitlePart part in parts)
@@ -65,7 +65,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(xmlStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (YttXmlSubtitlePart part in parts.WithCancellation(cancellationToken))

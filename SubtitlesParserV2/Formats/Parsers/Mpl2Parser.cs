@@ -33,14 +33,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 		public List<SubtitleModel> ParseStream(Stream mpl2Stream, Encoding encoding)
 		{
 			var ret = ParseStreamConsuming(mpl2Stream, encoding).ToList();
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
 		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 		{
 			var ret = await ParseStreamConsumingAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
-			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
@@ -52,7 +52,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 			IEnumerable<Mpl2SubtitlePart> parts = GetParts(mpl2Stream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			foreach (Mpl2SubtitlePart part in parts)
@@ -71,7 +71,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			var parts = GetPartsAsync(mpl2Stream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
-				throw new ArgumentException(BadFormatMsg);
+				throw new FormatException(BadFormatMsg);
 
 			bool first = true;
 			await foreach (Mpl2SubtitlePart part in parts.WithCancellation(cancellationToken))
@@ -172,7 +172,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Parse the line
 			string[] parts = line.Split(']', 3);
 			// Ensure there is at least 3 string ( [START] & [END] & CONTENT )
-			if (parts.Length < 3) throw new ArgumentException("Stream line is not in a valid Mpl2 format.");
+			if (parts.Length < 3) throw new FormatException("Stream line is not in a valid Mpl2 format.");
 
 			// Two first elements are the timestamp, what follow it the content
 			string content = parts[2];
@@ -199,14 +199,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// Ensure there is at least 2 matches ( [START] & [END] )
 			// NOTE: We could default to defining time to -1 when invalid, however due to the file having almost no unique feature,
 			// a invalid timestamp is the best way to detect that the current stream is not in Mpl2 format and stop parsing early.
-			if (matchs.Groups.Count < 2) throw new ArgumentException("Stream line is not in a valid Mpl2 format.");
+			if (matchs.Groups.Count < 2) throw new FormatException("Stream line is not in a valid Mpl2 format.");
 
 			int startTime = 0;
 			int endTime = 0;
 			// Parse time, throw error if it fail
 			if (!int.TryParse(matchs?.Groups["START"]?.Value, out startTime) || !int.TryParse(matchs?.Groups["END"]?.Value, out endTime))
 			{
-				throw new ArgumentException("Stream line has invalid characters at positions used for time. Stream is not a valid Mpl2 format.");
+				throw new FormatException("Stream line has invalid characters at positions used for time. Stream is not a valid Mpl2 format.");
 			}
 			return ((int)new TimeSpan(0, 0, startTime).TotalMilliseconds, (int)new TimeSpan(0, 0, endTime).TotalMilliseconds);
 		}
