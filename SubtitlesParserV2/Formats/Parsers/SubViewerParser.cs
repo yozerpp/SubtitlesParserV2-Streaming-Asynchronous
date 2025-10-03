@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 
@@ -28,7 +31,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 00:05:00.19,00:05:03.47
 	/// M. Franklin,[br]are you crazy?
 	/// -->
-	internal class SubViewerParser : ISubtitlesParser
+	internal class SubViewerParser : ISubtitlesParser<SubViewerSubtitlePart>
 	{
 		// Properties ----------------------------------------------------------
 
@@ -40,16 +43,113 @@ namespace SubtitlesParserV2.Formats.Parsers
 		private static readonly Regex _timestampRegex = new Regex(@"\d{1,6}:\d{2}:\d{2}\.\d{2,10},\d{1,6}:\d{2}:\d{2}\.\d{2,10}", RegexOptions.Compiled);
 		private const char TimecodeSeparator = ',';
 
+		private const string BadFormatMsg = "Stream is not in a valid SubViewer format";
+
 		// Methods -------------------------------------------------------------
 
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)
 		{
+			var ret = ParseAsEnumerable(subStream, encoding).ToList();
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream subStream, Encoding encoding)
+		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
 			// seek the beginning of the stream
 			subStream.Position = 0;
-			// Create a StreamReader & configure it to leave the main stream open when disposing
-			using StreamReader reader = new StreamReader(subStream, encoding, true, 1024, true);
 
+			IEnumerable<SubViewerSubtitlePart> parts = GetParts(subStream, encoding).Peekable(out var partsAny);
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			foreach (SubViewerSubtitlePart part in parts)
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream subStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
+			// seek the beginning of the stream
+			subStream.Position = 0;
+
+			var parts = GetPartsAsync(subStream, encoding, cancellationToken);
+			var partsAny = await parts.PeekableAsync();
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			await foreach (SubViewerSubtitlePart part in parts.WithCancellation(cancellationToken))
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
+
+		public IEnumerable<SubViewerSubtitlePart> GetParts(Stream stream, Encoding encoding)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			foreach (var part in GetSubViewerSubtitleParts(reader))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<SubViewerSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			await foreach (var part in GetSubViewerSubtitlePartsAsync(reader, cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public SubtitleModel ParsePart(SubViewerSubtitlePart part, bool isFirstPart)
+		{
+			// Parse the timecode line
+			(int startTime, int endTime) = ParseTimecodeLine(part.TimecodeLine);
+
+			// Process text lines for SubViewer2 [br] tags
+			List<string> processedLines = new List<string>();
+			foreach (string line in part.TextLines)
+			{
+				if (line.Contains(SubViewer2NewLine))
+				{
+					processedLines.AddRange(line.Split(SubViewer2NewLine).Select(realLine => realLine.Trim()));
+				}
+				else
+				{
+					processedLines.Add(line.Trim());
+				}
+			}
+
+			return new SubtitleModel()
+			{
+				StartTime = startTime,
+				EndTime = endTime,
+				Lines = processedLines
+			};
+		}
+
+		/// <summary>
+		/// Enumerates the subtitle parts in a SubViewer file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the SubViewer file</param>
+		/// <returns>An IEnumerable of SubViewerSubtitlePart objects</returns>
+		private static IEnumerable<SubViewerSubtitlePart> GetSubViewerSubtitleParts(TextReader reader)
+		{
 			// Ensure the first line match a .sbv file format for SubViewer1 (optional info header / subtitle header)
 			// or SubViewer2 (timestamp)
 			string? line = reader.ReadLine() ?? string.Empty;
@@ -69,9 +169,6 @@ namespace SubtitlesParserV2.Formats.Parsers
 				// max number of lines read for SubViewer1
 				if (line != null && lineNumber <= MaxLineNumberForItems)
 				{
-					// Store final subtitles
-					List<SubtitleModel> items = new List<SubtitleModel>();
-
 					// Store the timecode line (current line)
 					string lastTimecodeLine = line;
 					List<string> textLines = new List<string>();
@@ -88,18 +185,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 						{
 							if (IsTimestampLine(line))
 							{
-								// Get previous timestamp line time
-								(int previousStart, int previousEnd) = ParseTimecodeLine(lastTimecodeLine);
-
-								// Ensure the timecode is valid and that we have at least 1 text line to add
-								if (previousStart > 0 && previousEnd > 0 && textLines.Count >= 1)
+								// Yield the previous subtitle part if we have text lines
+								if (textLines.Count >= 1)
 								{
-									items.Add(new SubtitleModel()
+									yield return new SubViewerSubtitlePart
 									{
-										StartTime = previousStart,
-										EndTime = previousEnd,
-										Lines = textLines,
-									});
+										TimecodeLine = lastTimecodeLine,
+										TextLines = textLines
+									};
 								}
 
 								// Update the previous timestamp line to current timecode line and reset text lines
@@ -108,18 +201,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 							}
 							else
 							{
-								/* SubViewer2 uses "[br]" to define new lines, so line = multiple lines
-								* SubViewer1 used to separate the lines in the file, so line = unique line
-								*/
 								// Store the text line
-								if (line.Contains(SubViewer2NewLine)) // SubViewer2
-								{
-									textLines.AddRange(line.Split(SubViewer2NewLine).Select(realLine => realLine.Trim()));
-								}
-								else // SubViewer1
-								{
-									textLines.Add(line.Trim());
-								}
+								textLines.Add(line);
 							}
 						}
 					}
@@ -127,25 +210,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 					// If any text lines are left, we add them under the last known valid timecode line
 					if (textLines.Count >= 1)
 					{
-						(int lastStart, int lastEnd) = ParseTimecodeLine(lastTimecodeLine);
-						if (lastStart > 0 && lastEnd > 0)
+						yield return new SubViewerSubtitlePart
 						{
-							items.Add(new SubtitleModel()
-							{
-								StartTime = lastStart,
-								EndTime = lastEnd,
-								Lines = textLines
-							});
-						}
-					}
-
-					if (items.Count >= 1)
-					{
-						return items;
-					}
-					else
-					{
-						throw new ArgumentException("Stream is not in a valid SubViewer format");
+							TimecodeLine = lastTimecodeLine,
+							TextLines = textLines
+						};
 					}
 				}
 				else
@@ -157,7 +226,95 @@ namespace SubtitlesParserV2.Formats.Parsers
 			{
 				throw new ArgumentException("Stream is not in a valid SubViewer format");
 			}
+		}
 
+		/// <summary>
+		/// Asynchronously enumerates the subtitle parts in a SubViewer file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the SubViewer file</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>An IAsyncEnumerable of SubViewerSubtitlePart objects</returns>
+		private static async IAsyncEnumerable<SubViewerSubtitlePart> GetSubViewerSubtitlePartsAsync(TextReader reader, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			// Ensure the first line match a .sbv file format for SubViewer1 (optional info header / subtitle header)
+			// or SubViewer2 (timestamp)
+			string? line = await reader.ReadLineAsync() ?? string.Empty;
+			int lineNumber = 1;
+			if (line.Equals(SubViewer1InfoHeader) || line.Equals(SubViewer1SubtitleHeader) || IsTimestampLine(line))
+			{
+				// Read the stream until hard-coded max number of lines is read (Prevent infinite loop with SubViewer1)
+				// or if the line is a timestamp line. The loop search the first timestamp for SubViewer1, in SubViewer2, the loop
+				// should not run as the first line is already a timestamp.
+				while (line != null && lineNumber <= MaxLineNumberForItems && !IsTimestampLine(line))
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+					line = await reader.ReadLineAsync();
+					lineNumber++;
+				}
+
+				// Here, the line is a timestamp line (due to our previous loop), except if we exceded the hard-coded
+				// max number of lines read for SubViewer1
+				if (line != null && lineNumber <= MaxLineNumberForItems)
+				{
+					// Store the timecode line (current line)
+					string lastTimecodeLine = line;
+					List<string> textLines = new List<string>();
+
+					// Parse all the lines
+					while (line != null)
+					{
+						cancellationToken.ThrowIfCancellationRequested();
+
+						/* We parses text lines until we find a timestamp line, at which point we
+						 * add all of the found text lines under the previously found timestamp line (lastTimecodeLine)
+						 * before starting again until the next timestamp line.
+						 */
+						line = await reader.ReadLineAsync();
+						if (!string.IsNullOrEmpty(line))
+						{
+							if (IsTimestampLine(line))
+							{
+								// Yield the previous subtitle part if we have text lines
+								if (textLines.Count >= 1)
+								{
+									yield return new SubViewerSubtitlePart
+									{
+										TimecodeLine = lastTimecodeLine,
+										TextLines = textLines
+									};
+								}
+
+								// Update the previous timestamp line to current timecode line and reset text lines
+								lastTimecodeLine = line;
+								textLines = new List<string>();
+							}
+							else
+							{
+								// Store the text line
+								textLines.Add(line);
+							}
+						}
+					}
+
+					// If any text lines are left, we add them under the last known valid timecode line
+					if (textLines.Count >= 1)
+					{
+						yield return new SubViewerSubtitlePart
+						{
+							TimecodeLine = lastTimecodeLine,
+							TextLines = textLines
+						};
+					}
+				}
+				else
+				{
+					throw new ArgumentException($"Couldn't find the first timestamp line in the current sub file. Last line read: '{line}', line number #{lineNumber}.");
+				}
+			}
+			else
+			{
+				throw new ArgumentException("Stream is not in a valid SubViewer format");
+			}
 		}
 
 		// ValueTuple
@@ -190,5 +347,14 @@ namespace SubtitlesParserV2.Formats.Parsers
 			bool isMatch = _timestampRegex.IsMatch(line);
 			return isMatch;
 		}
+	}
+
+	/// <summary>
+	/// Represents a parsed SubViewer subtitle part before conversion to SubtitleModel
+	/// </summary>
+	internal class SubViewerSubtitlePart
+	{
+		public string TimecodeLine { get; set; } = string.Empty;
+		public List<string> TextLines { get; set; } = new List<string>();
 	}
 }
