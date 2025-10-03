@@ -1,10 +1,13 @@
-﻿using SubtitlesParserV2.Helpers;
+using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SubtitlesParserV2.Formats.Parsers
@@ -21,6 +24,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </summary>
 		public string? TargetLanguage { get; set; }
 	}
+
 	/// <summary>
 	/// Parser for the .sami/.smi subtitles files (html-like).
 	/// <strong>NOTE</strong>: Only support time parsing in ms (Microsoft DirectShow and Windows Media Player support only milliseconds)
@@ -31,34 +35,142 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// https://en.wikipedia.org/wiki/SAMI
 	/// https://docs.fileformat.com/video/sami/
 	/// -->
-	internal class SamiParser : ISubtitlesParser, ISubtitlesParser<SamiParserConfig>
+	internal class SamiParser : ISubtitlesParser<SamiSubtitlePart>, ISubtitlesParser<SamiSubtitlePart, SamiParserConfig>
 	{
+		private const string BadFormatMsg = "Stream is not in a valid Sami format";
+
 		public List<SubtitleModel> ParseStream(Stream stream, Encoding encoding)
 		{
 			return ParseStream(stream, encoding, new SamiParserConfig());
 		}
+
 		public List<SubtitleModel> ParseStream(Stream samiStream, Encoding encoding, SamiParserConfig config)
+		{
+			var ret = ParseAsEnumerable(samiStream, encoding, config).ToList();
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, new SamiParserConfig(), cancellationToken).ToListAsync(cancellationToken);
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream samiStream, Encoding encoding)
+		{
+			return ParseAsEnumerable(samiStream, encoding, new SamiParserConfig());
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream samiStream, Encoding encoding, SamiParserConfig config)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(samiStream);
 			// seek the beginning of the stream
 			samiStream.Position = 0;
 
-			// Create a StreamReader & configure it to leave the main stream open when disposing
-			using StreamReader reader = new StreamReader(samiStream, encoding, true, 1024, true);
+			IEnumerable<SamiSubtitlePart> parts = GetParts(samiStream, encoding, config).Peekable(out var partsAny);
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
 
-			List<SubtitleModel> items = new List<SubtitleModel>();
+			bool first = true;
+			foreach (SamiSubtitlePart part in parts)
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream samiStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			await foreach (var item in ParseAsEnumerableAsync(samiStream, encoding, new SamiParserConfig(), cancellationToken))
+			{
+				yield return item;
+			}
+		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream samiStream, Encoding encoding, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(samiStream);
+			// seek the beginning of the stream
+			samiStream.Position = 0;
+
+			var parts = GetPartsAsync(samiStream, encoding, config, cancellationToken);
+			var partsAny = await parts.PeekableAsync();
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			await foreach (SamiSubtitlePart part in parts.WithCancellation(cancellationToken))
+			{
+				yield return ParsePart(part, first);
+				first = false;
+			}
+		}
+
+		public IEnumerable<SamiSubtitlePart> GetParts(Stream stream, Encoding encoding)
+		{
+			return GetParts(stream, encoding, new SamiParserConfig());
+		}
+
+		public IEnumerable<SamiSubtitlePart> GetParts(Stream stream, Encoding encoding, SamiParserConfig config)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			foreach (var part in GetSamiSubtitleParts(reader, config))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<SamiSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			await foreach (var part in GetPartsAsync(stream, encoding, new SamiParserConfig(), cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<SamiSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			await foreach (var part in GetSamiSubtitlePartsAsync(reader, config, cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public SubtitleModel ParsePart(SamiSubtitlePart part, bool isFirstPart)
+		{
+			return new SubtitleModel()
+			{
+				StartTime = part.StartTime,
+				EndTime = part.EndTime,
+				Lines = part.Lines
+			};
+		}
+
+		/// <summary>
+		/// Enumerates the subtitle parts in a SAMI file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the SAMI file</param>
+		/// <param name="config">The parser configuration</param>
+		/// <returns>An IEnumerable of SamiSubtitlePart objects</returns>
+		private static IEnumerable<SamiSubtitlePart> GetSamiSubtitleParts(TextReader reader, SamiParserConfig config)
+		{
 			List<string> linesPerBlock = new List<string>();
 
 			// Store if we are reading in the body or not
 			bool inBody = false;
-			// Store the sync block begenning time
+			// Store the sync block beginning time
 			int syncBlockStartTimeMs = -1;
 
 			// Read the first line
 			string? line = reader.ReadLine();
 			// Ensure the file is a sami file by verifying the first line
-			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) throw new ArgumentException("Could not find SAMI element at line 1.");
-			// Loop until last line (lastText & lastTimeMs) was processed (are null), +1 loop after end of stream
+			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
+				throw new ArgumentException("Could not find SAMI element at line 1.");
+
+			// Loop until last line was processed
 			do
 			{
 				// Read a new line
@@ -81,17 +193,23 @@ namespace SubtitlesParserV2.Formats.Parsers
 					{
 						int startIndex = line.IndexOf("Start=", StringComparison.OrdinalIgnoreCase) + 6;
 						int endIndex = line.IndexOf('>', startIndex);
-						// Store the new sync block (subtitle) start time
-						syncBlockStartTimeMs = ParseSamiTime(line.Substring(startIndex, endIndex - startIndex).Trim()) ?? -1;
-						// We now have the end time of the previous sync block, so we edit the SubtitleModel end time and
-						// clear out lines of the previous sync block
+						int newSyncBlockStartTimeMs = ParseSamiTime(line.Substring(startIndex, endIndex - startIndex).Trim()) ?? -1;
+
+						// We now have the end time of the previous sync block
 						if (linesPerBlock.Count >= 1)
 						{
-							// This edit the value of the existing SubtitleModel (of the previous sync block)
-							SubtitleModel previousSyncBlockSubtitles = items.Last();
-							previousSyncBlockSubtitles.EndTime = syncBlockStartTimeMs;
-							linesPerBlock = new List<string>(); // Clear lines previous sync block
+							// Yield the previous sync block with its end time
+							yield return new SamiSubtitlePart
+							{
+								StartTime = syncBlockStartTimeMs,
+								EndTime = newSyncBlockStartTimeMs,
+								Lines = linesPerBlock
+							};
+							linesPerBlock = new List<string>(); // Clear lines for new sync block
 						}
+
+						// Store the new sync block start time
+						syncBlockStartTimeMs = newSyncBlockStartTimeMs;
 					}
 
 					// Parse the text from the current line
@@ -110,20 +228,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 					}
 
 					// Handle SYNC block closure
-					if (line.StartsWith("</SYNC>", StringComparison.OrdinalIgnoreCase) || line.EndsWith("</SYNC>", StringComparison.OrdinalIgnoreCase)) // Handle single line and multiline sync blocks
+					if (line.StartsWith("</SYNC>", StringComparison.OrdinalIgnoreCase) || line.EndsWith("</SYNC>", StringComparison.OrdinalIgnoreCase))
 					{
-						// If >= 1, we create a subtitleModel for the end of this sync block
-						if (linesPerBlock.Count >= 1)
-						{
-							SubtitleModel appendedModel = new SubtitleModel()
-							{
-								EndTime = -1, // We can't know yet, will be updated at the begenning of the next SYNC BLOCK
-								StartTime = syncBlockStartTimeMs, // Was defined in the SYNC block opening handling
-								Lines = linesPerBlock
-							};
-							items.Add(appendedModel);
-						}
-						continue; // Go to next line in stream directly
+						// Continue to next line - we'll yield when we find the next SYNC block or end of body
+						continue;
 					}
 				}
 				else if (line.StartsWith("<BODY>", StringComparison.OrdinalIgnoreCase)) // Verify if we entered the body
@@ -132,14 +240,121 @@ namespace SubtitlesParserV2.Formats.Parsers
 				}
 			} while (line != null); // Loop until end of stream
 
-			// Ensure we at least found 1 valid item
-			if (items.Count >= 1)
+			// Yield any remaining lines from the last sync block
+			if (linesPerBlock.Count >= 1)
 			{
-				return items;
+				yield return new SamiSubtitlePart
+				{
+					StartTime = syncBlockStartTimeMs,
+					EndTime = -1, // Last subtitle doesn't have a known end time
+					Lines = linesPerBlock
+				};
 			}
-			else
+		}
+
+		/// <summary>
+		/// Asynchronously enumerates the subtitle parts in a SAMI file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the SAMI file</param>
+		/// <param name="config">The parser configuration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>An IAsyncEnumerable of SamiSubtitlePart objects</returns>
+		private static async IAsyncEnumerable<SamiSubtitlePart> GetSamiSubtitlePartsAsync(TextReader reader, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			List<string> linesPerBlock = new List<string>();
+
+			// Store if we are reading in the body or not
+			bool inBody = false;
+			// Store the sync block beginning time
+			int syncBlockStartTimeMs = -1;
+
+			// Read the first line
+			string? line = await reader.ReadLineAsync();
+			// Ensure the file is a sami file by verifying the first line
+			if (!line?.Equals("<SAMI>", StringComparison.OrdinalIgnoreCase) ?? true) 
+				throw new ArgumentException("Could not find SAMI element at line 1.");
+
+			// Loop until last line was processed
+			do
 			{
-				throw new ArgumentException("Stream is not in a valid Sami format");
+				cancellationToken.ThrowIfCancellationRequested();
+
+				// Read a new line
+				line = await reader.ReadLineAsync();
+				// If the line is null or empty, re-evaluate the while condition and read next line
+				if (string.IsNullOrEmpty(line)) continue;
+
+				// Verify if we are inside the body (where the subtitle are)
+				if (inBody)
+				{
+					// Verify if we exited the body
+					if (line.StartsWith("</BODY>", StringComparison.OrdinalIgnoreCase))
+					{
+						inBody = false;
+						continue; // exit body execution as we are no longer inside the body
+					}
+
+					// Verify for a new sync block (Parse the time of the current line)
+					if (line.StartsWith("<SYNC", StringComparison.OrdinalIgnoreCase))
+					{
+						int startIndex = line.IndexOf("Start=", StringComparison.OrdinalIgnoreCase) + 6;
+						int endIndex = line.IndexOf('>', startIndex);
+						int newSyncBlockStartTimeMs = ParseSamiTime(line.Substring(startIndex, endIndex - startIndex).Trim()) ?? -1;
+
+						// We now have the end time of the previous sync block
+						if (linesPerBlock.Count >= 1)
+						{
+							// Yield the previous sync block with its end time
+							yield return new SamiSubtitlePart
+							{
+								StartTime = syncBlockStartTimeMs,
+								EndTime = newSyncBlockStartTimeMs,
+								Lines = linesPerBlock
+							};
+							linesPerBlock = new List<string>(); // Clear lines for new sync block
+						}
+
+						// Store the new sync block start time
+						syncBlockStartTimeMs = newSyncBlockStartTimeMs;
+					}
+
+					// Parse the text from the current line
+					(string? text, string? textLanguage) = GetTextFromLine(line);
+					// Ensure text was found
+					if (!string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(textLanguage))
+					{
+						// If target language is defined, do nothing, else, set the first language we found
+						// as the target language. Thus, all lyrics from now on will need to have the same language.
+						config.TargetLanguage = config.TargetLanguage != null ? config.TargetLanguage : textLanguage;
+						// Ensure that the subtitle we are parsing is the same language as the targeted language
+						if (config.TargetLanguage.Equals(textLanguage, StringComparison.OrdinalIgnoreCase))
+						{
+							linesPerBlock.Add(HttpUtility.HtmlDecode(text).Trim());
+						}
+					}
+
+					// Handle SYNC block closure
+					if (line.StartsWith("</SYNC>", StringComparison.OrdinalIgnoreCase) || line.EndsWith("</SYNC>", StringComparison.OrdinalIgnoreCase))
+					{
+						// Continue to next line - we'll yield when we find the next SYNC block or end of body
+						continue;
+					}
+				}
+				else if (line.StartsWith("<BODY>", StringComparison.OrdinalIgnoreCase)) // Verify if we entered the body
+				{
+					inBody = true;
+				}
+			} while (line != null); // Loop until end of stream
+
+			// Yield any remaining lines from the last sync block
+			if (linesPerBlock.Count >= 1)
+			{
+				yield return new SamiSubtitlePart
+				{
+					StartTime = syncBlockStartTimeMs,
+					EndTime = -1, // Last subtitle doesn't have a known end time
+					Lines = linesPerBlock
+				};
 			}
 		}
 
@@ -168,7 +383,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// Parse a Sami stream to get the text of the current line along with it's language
 		/// </summary>
 		/// <param name="line">The line to parse</param>
-		/// <returns>A ValueTuple with the text as Item2 and the targetLanguage as Item2</returns>
+		/// <returns>A ValueTuple with the text as Item1 and the targetLanguage as Item2</returns>
 		private static (string? text, string? targetLanguage) GetTextFromLine(string line)
 		{
 			string? text = null;
@@ -204,5 +419,15 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 			return (null, null);
 		}
+	}
+
+	/// <summary>
+	/// Represents a parsed SAMI subtitle part before conversion to SubtitleModel
+	/// </summary>
+	internal class SamiSubtitlePart
+	{
+		public int StartTime { get; set; }
+		public int EndTime { get; set; }
+		public List<string> Lines { get; set; } = new List<string>();
 	}
 }
