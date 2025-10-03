@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
@@ -29,7 +32,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 00:00:15.000 --> 00:00:18.000
 	/// At the left we can see...
 	/// -->
-	internal class VttParser : ISubtitlesParser
+	internal class VttParser : ISubtitlesParser<string>
 	{
 		// Properties -----------------------------------------------------------------------
 
@@ -39,81 +42,130 @@ namespace SubtitlesParserV2.Formats.Parsers
 		private static readonly string[] _delimiters = new string[] { "-->", "- >", "->" };
 		private static readonly string[] _newLineCharacters = { "\r\n", "\r", "\n" };
 
+		private const string BadFormatMsg = "Stream is not in a valid WebVTT format";
+
 		// Methods -------------------------------------------------------------------------
 
 		public List<SubtitleModel> ParseStream(Stream vttStream, Encoding encoding)
+		{
+			var ret = ParseAsEnumerable(vttStream, encoding).ToList();
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream vttStream, Encoding encoding)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(vttStream);
 			// seek the beginning of the stream
 			vttStream.Position = 0;
 
-			// Create a StreamReader & configure it to leave the main stream open when disposing
-			using StreamReader reader = new StreamReader(vttStream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			IEnumerable<string> parts = GetParts(vttStream, encoding).Peekable(out var partsAny);
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
 
-			List<SubtitleModel> items = new List<SubtitleModel>();
-			IEnumerator<string> vttSubParts = GetVttSubTitleParts(reader).GetEnumerator();
-			// Read the first part of the file
-			if (vttSubParts.MoveNext() == false)
+			bool first = true;
+			foreach (string part in parts)
 			{
-				throw new FormatException("Parsing as VTT returned no VTT part.");
+				yield return ParsePart(part, first);
+				first = false;
 			}
+		}
 
-			// Ensure the file has the WebVTT header, technically not required, but the WebVTT docs requires it, and it save us potential useless reading
-			if (!vttSubParts.Current.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase)) 
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream vttStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(vttStream);
+			// seek the beginning of the stream
+			vttStream.Position = 0;
+
+			var parts = GetPartsAsync(vttStream, encoding, cancellationToken);
+			var partsAny = await parts.PeekableAsync();
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			await foreach (string part in parts.WithCancellation(cancellationToken))
 			{
-				throw new FormatException("Could not find WebVTT header at line 1.");
+				yield return ParsePart(part, first);
+				first = false;
 			}
+		}
 
-			// Loop per parts (groups of multiples lines)
-			do
+		public IEnumerable<string> GetParts(Stream stream, Encoding encoding)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			foreach (var part in GetVttSubTitleParts(reader))
 			{
-				IEnumerable<string> lines = vttSubParts.Current.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
+				yield return part;
+			}
+		}
 
-				SubtitleModel item = new SubtitleModel();
-				foreach (string line in lines)
+		public async IAsyncEnumerable<string> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			await foreach (var part in GetVttSubTitlePartsAsync(reader, cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public SubtitleModel ParsePart(string part, bool isFirstPart)
+		{
+			// If this is the first part, verify it's the WebVTT header
+			if (isFirstPart)
+			{
+				if (part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
 				{
-					// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
-					if (item.StartTime == -1 && item.EndTime == -1)
+					// Return an empty subtitle for the header
+					return new SubtitleModel()
 					{
-						// Verify if current line is a timecode line
-						bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
-						if (success)
-						{
-							// Set current item time
-							item.StartTime = startTc;
-							item.EndTime = endTc;
-						}
-					}
-					else
+						StartTime = -1,
+						EndTime = -1,
+						Lines = new List<string>()
+					};
+				}
+				else
+				{
+					throw new FormatException("Could not find WebVTT header at line 1.");
+				}
+			}
+
+			IEnumerable<string> lines = part.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim());
+
+			SubtitleModel item = new SubtitleModel();
+			foreach (string line in lines)
+			{
+				// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
+				if (item.StartTime == -1 && item.EndTime == -1)
+				{
+					// Verify if current line is a timecode line
+					bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
+					if (success)
 					{
-						/* Add current line to item,
-						* Decode it using html as docs recommend to html encode special characters like ">" & "<" or "&".
-						* We then remove all angle brackets and the content inside, as this is how formatting (not supported here)
-						* is done on WebVTT. This mean timed lyrics, for example karaoke-style "My <00:00:00>time<00:02:40> is up!" or
-						* text with specific style / fonts won't work.
-						*/
-						item.Lines.Add(Regex.Replace(HttpUtility.HtmlDecode(line), @"<.*?>", string.Empty).Trim());
+						// Set current item time
+						item.StartTime = startTc;
+						item.EndTime = endTc;
 					}
 				}
-
-				// Ensure that the item for the current part have at least one text line
-				if (item.Lines.Count >= 1)
+				else
 				{
-					// Add part item to the final items list
-					items.Add(item);
+					/* Add current line to item,
+					* Decode it using html as docs recommend to html encode special characters like ">" & "<" or "&".
+					* We then remove all angle brackets and the content inside, as this is how formatting (not supported here)
+					* is done on WebVTT. This mean timed lyrics, for example karaoke-style "My <00:00:00>time<00:02:40> is up!" or
+					* text with specific style / fonts won't work.
+					*/
+					item.Lines.Add(Regex.Replace(HttpUtility.HtmlDecode(line), @"<.*?>", string.Empty).Trim());
 				}
 			}
-			while (vttSubParts.MoveNext());
 
-			// Verify if we have found at least 1 subtitle, else throw
-			if (items.Count != 0)
-			{
-				return items;
-			}
-			else
-			{
-				throw new ArgumentException("Stream is not in a valid WebVTT format");
-			}
+			return item;
 		}
 
 		/// <summary>
@@ -151,6 +203,45 @@ namespace SubtitlesParserV2.Formats.Parsers
 					sb.AppendLine(line);
 				}
 				line = reader.ReadLine(); // Read line for next loop
+			}
+
+			if (sb.Length > 0)
+			{
+				yield return sb.ToString();
+			}
+		}
+
+		/// <summary>
+		/// Asynchronously enumerates the subtitle parts in a VTT file based on the standard line break observed between them.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the vtt file</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>An IAsyncEnumerable(string) object containing all the subtitle parts</returns>
+		private static async IAsyncEnumerable<string> GetVttSubTitlePartsAsync(TextReader reader, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			string? line = await reader.ReadLineAsync(); // Read first line
+			StringBuilder sb = new StringBuilder();
+
+			while (line != null)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+
+				// Verify if it's the end of the current part (new empty line)
+				if (string.IsNullOrEmpty(line.Trim()))
+				{
+					// Return if the string builder has text, else do nothing
+					string res = sb.ToString().TrimEnd();
+					if (!string.IsNullOrEmpty(res))
+					{
+						yield return res;
+					}
+					sb = new StringBuilder();
+				}
+				else // Still inside the part, save the content
+				{
+					sb.AppendLine(line);
+				}
+				line = await reader.ReadLineAsync(); // Read line for next loop
 			}
 
 			if (sb.Length > 0)
