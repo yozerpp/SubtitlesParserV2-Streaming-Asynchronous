@@ -73,8 +73,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 			bool first = true;
 			foreach (string part in parts)
 			{
-				yield return ParsePart(part, first);
+				var ret =  ParsePart(part, first);
 				first = false;
+				if(ret.Equals(SubtitleModel.Default))
+					continue;
+				yield return ret;
 			}
 		}
 
@@ -92,8 +95,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 			bool first = true;
 			await foreach (string part in parts.WithCancellation(cancellationToken))
 			{
-				yield return ParsePart(part, first);
+				var ret =  ParsePart(part, first);
 				first = false;
+				if(ret.Equals(SubtitleModel.Default))
+					continue;
+				yield return ret;
 			}
 		}
 
@@ -123,13 +129,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 				if (part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
 				{
 					// Return an empty subtitle for the header
-					return null;
-					// return new SubtitleModel()
-					// {
-					// 	StartTime = -1,
-					// 	EndTime = -1,
-					// 	Lines = new List<string>()
-					// };
+					return SubtitleModel.Default;
 				}
 				else
 				{
@@ -185,7 +185,6 @@ namespace SubtitlesParserV2.Formats.Parsers
 		{
 			string? line = reader.ReadLine(); // Read first line
 			StringBuilder sb = new StringBuilder();
-
 			while (line != null)
 			{
 				// Verify if it's the end of the current part (new empty line)

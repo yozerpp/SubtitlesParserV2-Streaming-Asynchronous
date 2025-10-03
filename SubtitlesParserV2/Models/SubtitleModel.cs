@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SubtitlesParserV2.Models
 {
@@ -43,9 +44,14 @@ namespace SubtitlesParserV2.Models
             Lines = new List<string>();
         }
 
+        public override bool Equals(object? obj)
+        {
+	        return ReferenceEquals(this, obj) ||
+	               obj is SubtitleModel sm &&
+	               sm.EndTime == EndTime && sm.StartTime == StartTime && sm.Lines.SequenceEqual(Lines);
+        }
 
-
-		// Methods --------------------------------------------------------------------------
+        // Methods --------------------------------------------------------------------------
 		// Show the subtitle values
 		/// <inheritdoc/>
 		public override string ToString()
@@ -55,5 +61,6 @@ namespace SubtitlesParserV2.Models
             return string.Format("{0} --> {1}: {2}", startTime.ToString("G"), endTime.ToString("G"), string.Join(Environment.NewLine, Lines));
         }
 
+        internal static SubtitleModel Default { get; } = new SubtitleModel();
     }
 }
