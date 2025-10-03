@@ -44,8 +44,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			xmlStream.Position = 0;
 
-			using XmlReader reader = XmlReader.Create(xmlStream, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true });
-			IEnumerable<YttXmlSubtitlePart> parts = GetParts(reader).Peekable(out var partsAny);
+			IEnumerable<YttXmlSubtitlePart> parts = GetParts(xmlStream, encoding).Peekable(out var partsAny);
 			if (!partsAny)
 				throw new ArgumentException(BadFormatMsg);
 
@@ -63,8 +62,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 			// seek the beginning of the stream
 			xmlStream.Position = 0;
 
-			using XmlReader reader = XmlReader.Create(xmlStream, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, Async = true });
-			var parts = GetPartsAsync(reader, cancellationToken);
+			var parts = GetPartsAsync(xmlStream, encoding, cancellationToken);
 			var partsAny = await parts.PeekableAsync();
 			if (!partsAny)
 				throw new ArgumentException(BadFormatMsg);
@@ -77,22 +75,18 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public IEnumerable<YttXmlSubtitlePart> GetParts(TextReader reader)
+		public IEnumerable<YttXmlSubtitlePart> GetParts(Stream stream, Encoding encoding)
 		{
-			// For YTT XML, we need to use XmlReader, not TextReader
-			// This method signature is required by the interface but not ideal for XML parsing
-			// We'll create the XmlReader from the TextReader
-			using XmlReader xmlReader = XmlReader.Create(reader, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true });
+			using XmlReader xmlReader = XmlReader.Create(stream, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true });
 			foreach (var part in GetPartsFromXmlReader(xmlReader))
 			{
 				yield return part;
 			}
 		}
 
-		public async IAsyncEnumerable<YttXmlSubtitlePart> GetPartsAsync(TextReader reader, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		public async IAsyncEnumerable<YttXmlSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			// For YTT XML, we need to use XmlReader, not TextReader
-			using XmlReader xmlReader = XmlReader.Create(reader, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, Async = true });
+			using XmlReader xmlReader = XmlReader.Create(stream, new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, Async = true });
 			await foreach (var part in GetPartsFromXmlReaderAsync(xmlReader, cancellationToken))
 			{
 				yield return part;
