@@ -65,11 +65,11 @@ namespace SubtitlesParserV2.Tests
                 invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
             // Verify that every timestamp is valid
-            Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+            Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
-		private void Parse_LRC()
+		private void  Parse_LRC()
 		{
 			SubtitleFormatType targetFormatType = SubtitleFormatType.LRC;
 
@@ -84,7 +84,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -103,7 +103,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -121,7 +121,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -139,7 +139,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -157,7 +157,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -175,7 +175,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -193,7 +193,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -212,7 +212,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles, false, false, true));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -230,7 +230,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -248,7 +248,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 
 		[Fact]
@@ -266,7 +266,7 @@ namespace SubtitlesParserV2.Tests
 				invalidTimestamps.Add(filePath, CountInvalidTimestamps(parsingResult.Subtitles));
 			}
 			// Verify that every timestamp is valid
-			Assert.Contains(invalidTimestamps, entry => entry.Value == 0);
+			Assert.All(invalidTimestamps, entry => Assert.Equal(0, entry.Value));
 		}
 	}
 }
