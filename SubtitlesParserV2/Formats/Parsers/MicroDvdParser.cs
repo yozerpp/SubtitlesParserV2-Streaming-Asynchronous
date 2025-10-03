@@ -1,10 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Logger;
@@ -29,6 +32,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </summary>
 		public int FirstLineSearchTimeout { get; set; } = 20;
 	}
+
 	/// <summary>
 	/// Parser for MicroDVD .sub subtitles files.
 	/// Will try to detect the framerate by default.
@@ -47,7 +51,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// {509}{629}Drink up water yo ho!
 	/// {635}{755}We eat and don't give a hoot.
 	/// -->
-	internal class MicroDvdParser : ISubtitlesParser, ISubtitlesParser<MicroDvdParserConfig>
+	internal class MicroDvdParser : ISubtitlesParser<MicroDvdSubtitlePart, MicroDvdParserConfig>
 	{
 		private static readonly Type CurrentType = typeof(MicroDvdParser);
 		// Alternative for static class, create a logger with the full namespace name
@@ -59,6 +63,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 		private static readonly char[] _lineSeparators = { '|' };
 		private static readonly string LineRegex = @"^[{\[](-?\d+)[}\]][{\[](-?\d+)[}\]](.*)";
 
+		private const string BadFormatMsg = "Stream is not in a valid MicroDVD format";
+
 		// Methods -------------------------------------------------------------------------
 
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)
@@ -68,70 +74,266 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding, MicroDvdParserConfig config)
 		{
+			var ret = ParseAsEnumerable(subStream, encoding, config).ToList();
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken).ToListAsync(cancellationToken);
+			if (ret.Count == 0) throw new ArgumentException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream subStream, Encoding encoding)
+		{
+			return ParseAsEnumerable(subStream, encoding, new MicroDvdParserConfig());
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream subStream, Encoding encoding, MicroDvdParserConfig config)
+		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
 			// seek the beginning of the stream
 			subStream.Position = 0;
 
-			// Create a StreamReader & configure it to leave the main stream open when disposing
-			using StreamReader reader = new StreamReader(subStream, encoding, true, 1024, true);
+			IEnumerable<MicroDvdSubtitlePart> parts = GetParts(subStream, encoding, config).Peekable(out var partsAny);
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
 
-			List<SubtitleModel> items = new List<SubtitleModel>();
+			bool first = true;
+			foreach (MicroDvdSubtitlePart part in parts)
+			{
+				yield return ParsePart(part, first, config);
+				first = false;
+			}
+		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream subStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			await foreach (var item in ParseAsEnumerableAsync(subStream, encoding, new MicroDvdParserConfig(), cancellationToken))
+			{
+				yield return item;
+			}
+		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream subStream, Encoding encoding, MicroDvdParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
+			// seek the beginning of the stream
+			subStream.Position = 0;
+
+			var parts = GetPartsAsync(subStream, encoding, config, cancellationToken);
+			var partsAny = await parts.PeekableAsync();
+			if (!partsAny)
+				throw new ArgumentException(BadFormatMsg);
+
+			bool first = true;
+			await foreach (MicroDvdSubtitlePart part in parts.WithCancellation(cancellationToken))
+			{
+				yield return ParsePart(part, first, config);
+				first = false;
+			}
+		}
+
+		public IEnumerable<MicroDvdSubtitlePart> GetParts(Stream stream, Encoding encoding)
+		{
+			return GetParts(stream, encoding, new MicroDvdParserConfig());
+		}
+
+		public IEnumerable<MicroDvdSubtitlePart> GetParts(Stream stream, Encoding encoding, MicroDvdParserConfig config)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			foreach (var part in GetMicroDvdSubtitleParts(reader, config))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<MicroDvdSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			await foreach (var part in GetPartsAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public async IAsyncEnumerable<MicroDvdSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, MicroDvdParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			using StreamReader reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, 1024, true);
+			await foreach (var part in GetMicroDvdSubtitlePartsAsync(reader, config, cancellationToken))
+			{
+				yield return part;
+			}
+		}
+
+		public SubtitleModel ParsePart(MicroDvdSubtitlePart part, bool isFirstPart)
+		{
+			return ParsePart(part, isFirstPart, new MicroDvdParserConfig());
+		}
+
+		public SubtitleModel ParsePart(MicroDvdSubtitlePart part, bool isFirstPart, MicroDvdParserConfig config)
+		{
+			int start = (int)(1000 * part.StartFrame / part.FrameRate);
+			int end = (int)(1000 * part.EndFrame / part.FrameRate);
+
+			return new SubtitleModel()
+			{
+				StartTime = start,
+				EndTime = end,
+				Lines = part.Lines
+			};
+		}
+
+		/// <summary>
+		/// Enumerates the subtitle parts in a MicroDVD file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the MicroDVD file</param>
+		/// <param name="config">The parser configuration</param>
+		/// <returns>An IEnumerable of MicroDvdSubtitlePart objects</returns>
+		private static IEnumerable<MicroDvdSubtitlePart> GetMicroDvdSubtitleParts(TextReader reader, MicroDvdParserConfig config)
+		{
 			string? line = reader.ReadLine();
+			int searchTimeout = config.FirstLineSearchTimeout;
+
 			// find the first relevant line
-			while (line != null && !IsMicroDvdLine(line) && config.FirstLineSearchTimeout > 0)
+			while (line != null && !IsMicroDvdLine(line) && searchTimeout > 0)
 			{
 				line = reader.ReadLine();
-				config.FirstLineSearchTimeout--;
+				searchTimeout--;
 			}
 
-			if (line != null)
+			if (line == null)
 			{
-				float frameRate;
-				if (config.Framerate.HasValue) // If a framerate was given when calling the method, use it
-				{
-					frameRate = config.Framerate.Value;
-				}
-				else
-				{
-					// try to extract the framerate from the first line
-					SubtitleModel firstItem = ParseLine(line, defaultFrameRate);
-					if (firstItem.Lines != null && firstItem.Lines.Count >= 1)
-					{
-						bool success = TryExtractFrameRate(firstItem.Lines[0], out frameRate);
-						if (!success)
-						{
-							_logger.LogWarning("Couldn't extract frame rate of sub file with first line {line}. We use the default frame rate: {frameRate}", line, defaultFrameRate);
-							frameRate = defaultFrameRate;
-							// We didn't find the framerate on the line, the line might be a subtitle so we add it to the list
-							items.Add(firstItem);
-						}
-					}
-					else
-					{
-						frameRate = defaultFrameRate;
-					}
-				}
-
-				// Parse other lines
-				line = reader.ReadLine();
-				while (line != null)
-				{
-					if (!string.IsNullOrEmpty(line))
-					{
-						SubtitleModel item = ParseLine(line, frameRate);
-						items.Add(item);
-					}
-					line = reader.ReadLine();
-				}
+				yield break;
 			}
 
-			if (items.Count >= 1)
+			float frameRate;
+			if (config.Framerate.HasValue) // If a framerate was given when calling the method, use it
 			{
-				return items;
+				frameRate = config.Framerate.Value;
 			}
 			else
 			{
-				throw new ArgumentException("Stream is not in a valid MicroDVD format");
+				// try to extract the framerate from the first line
+				(int startFrame, int endFrame, List<string> lines) = ParseMicroDvdLine(line);
+				if (lines != null && lines.Count >= 1)
+				{
+					bool success = TryExtractFrameRate(lines[0], out frameRate);
+					if (!success)
+					{
+						_logger.LogWarning("Couldn't extract frame rate of sub file with first line {line}. We use the default frame rate: {frameRate}", line, defaultFrameRate);
+						frameRate = defaultFrameRate;
+						// We didn't find the framerate on the line, the line might be a subtitle so we yield it
+						yield return new MicroDvdSubtitlePart
+						{
+							StartFrame = startFrame,
+							EndFrame = endFrame,
+							Lines = lines,
+							FrameRate = frameRate
+						};
+					}
+				}
+				else
+				{
+					frameRate = defaultFrameRate;
+				}
+			}
+
+			// Parse other lines
+			line = reader.ReadLine();
+			while (line != null)
+			{
+				if (!string.IsNullOrEmpty(line) && IsMicroDvdLine(line))
+				{
+					(int startFrame, int endFrame, List<string> lines) = ParseMicroDvdLine(line);
+					yield return new MicroDvdSubtitlePart
+					{
+						StartFrame = startFrame,
+						EndFrame = endFrame,
+						Lines = lines,
+						FrameRate = frameRate
+					};
+				}
+				line = reader.ReadLine();
+			}
+		}
+
+		/// <summary>
+		/// Asynchronously enumerates the subtitle parts in a MicroDVD file.
+		/// </summary>
+		/// <param name="reader">The textreader associated with the MicroDVD file</param>
+		/// <param name="config">The parser configuration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>An IAsyncEnumerable of MicroDvdSubtitlePart objects</returns>
+		private static async IAsyncEnumerable<MicroDvdSubtitlePart> GetMicroDvdSubtitlePartsAsync(TextReader reader, MicroDvdParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			string? line = await reader.ReadLineAsync();
+			int searchTimeout = config.FirstLineSearchTimeout;
+
+			// find the first relevant line
+			while (line != null && !IsMicroDvdLine(line) && searchTimeout > 0)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				line = await reader.ReadLineAsync();
+				searchTimeout--;
+			}
+
+			if (line == null)
+			{
+				yield break;
+			}
+
+			float frameRate;
+			if (config.Framerate.HasValue) // If a framerate was given when calling the method, use it
+			{
+				frameRate = config.Framerate.Value;
+			}
+			else
+			{
+				// try to extract the framerate from the first line
+				(int startFrame, int endFrame, List<string> lines) = ParseMicroDvdLine(line);
+				if (lines != null && lines.Count >= 1)
+				{
+					bool success = TryExtractFrameRate(lines[0], out frameRate);
+					if (!success)
+					{
+						_logger.LogWarning("Couldn't extract frame rate of sub file with first line {line}. We use the default frame rate: {frameRate}", line, defaultFrameRate);
+						frameRate = defaultFrameRate;
+						// We didn't find the framerate on the line, the line might be a subtitle so we yield it
+						yield return new MicroDvdSubtitlePart
+						{
+							StartFrame = startFrame,
+							EndFrame = endFrame,
+							Lines = lines,
+							FrameRate = frameRate
+						};
+					}
+				}
+				else
+				{
+					frameRate = defaultFrameRate;
+				}
+			}
+
+			// Parse other lines
+			line = await reader.ReadLineAsync();
+			while (line != null)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+
+				if (!string.IsNullOrEmpty(line) && IsMicroDvdLine(line))
+				{
+					(int startFrame, int endFrame, List<string> lines) = ParseMicroDvdLine(line);
+					yield return new MicroDvdSubtitlePart
+					{
+						StartFrame = startFrame,
+						EndFrame = endFrame,
+						Lines = lines,
+						FrameRate = frameRate
+					};
+				}
+				line = await reader.ReadLineAsync();
 			}
 		}
 
@@ -148,28 +350,21 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// {0}{180}PIRATES OF THE WORLD|English subtitlez by chicken
 		/// -->
 		/// <param name="line">The .sub file line</param>
-		/// <param name="frameRate">The frame rate with which the .sub file was created</param>
-		/// <returns>The corresponding SubtitleItem</returns>
-		private static SubtitleModel ParseLine(string line, float frameRate)
+		/// <returns>A tuple containing start frame, end frame, and text lines</returns>
+		private static (int startFrame, int endFrame, List<string> lines) ParseMicroDvdLine(string line)
 		{
 			Match match = Regex.Match(line, LineRegex);
 			if (match.Success && match.Groups.Count > 2)
 			{
-				string startFrame = match.Groups[1].Value;
-				int start = (int)(1000 * double.Parse(startFrame) / frameRate);
-				string endTime = match.Groups[2].Value;
-				int end = (int)(1000 * double.Parse(endTime) / frameRate);
+				string startFrameStr = match.Groups[1].Value;
+				int startFrame = int.Parse(startFrameStr);
+				string endFrameStr = match.Groups[2].Value;
+				int endFrame = int.Parse(endFrameStr);
 				string text = match.Groups[match.Groups.Count - 1].Value;
-				string[] lines = text.Split(_lineSeparators);
-				List<string> nonEmptyLines = lines.Where(l => !string.IsNullOrEmpty(l)).ToList();
-				SubtitleModel item = new SubtitleModel
-				{
-					Lines = nonEmptyLines,
-					StartTime = start,
-					EndTime = end
-				};
+				string[] lineArray = text.Split(_lineSeparators);
+				List<string> nonEmptyLines = lineArray.Where(l => !string.IsNullOrEmpty(l)).ToList();
 
-				return item;
+				return (startFrame, endFrame, nonEmptyLines);
 			}
 			else
 			{
@@ -201,5 +396,16 @@ namespace SubtitlesParserV2.Formats.Parsers
 				return false;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Represents a parsed MicroDVD subtitle part before conversion to SubtitleModel
+	/// </summary>
+	internal class MicroDvdSubtitlePart
+	{
+		public int StartFrame { get; set; }
+		public int EndFrame { get; set; }
+		public List<string> Lines { get; set; } = new List<string>();
+		public float FrameRate { get; set; }
 	}
 }
