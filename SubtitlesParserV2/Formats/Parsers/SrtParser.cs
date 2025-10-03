@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using SubtitlesParserV2.Helpers;
 using SubtitlesParserV2.Models;
 
@@ -25,7 +28,7 @@ namespace SubtitlesParserV2.Formats.Parsers
 	/// 00:00:15,000 --> 00:00:18,000
 	/// At the left we can see...[12]
 	/// --> 
-	internal class SrtParser : ISubtitlesParser
+	internal class SrtParser : ISubtitlesParser<string>
 	{
 
 		// Properties -----------------------------------------------------------------------
@@ -33,80 +36,61 @@ namespace SubtitlesParserV2.Formats.Parsers
 		private static readonly string[] _delimiters = { "-->", "- >", "->" };
 		private static readonly string[] _newLineCharacters = { "\r\n", "\r", "\n" };
 
+		private const string NoPartsMsg = "Parsing as srt returned no srt part.";
+
+		private const string BadFormatMsg = "Stream is not in a valid Srt format";
 		// Methods -------------------------------------------------------------------------
 
 		public List<SubtitleModel> ParseStream(Stream srtStream, Encoding encoding)
 		{
+			var ret = ParseAsEnumerable(srtStream, encoding).ToList();
+			if(ret.Count == 0) throw new FormatException(BadFormatMsg);
+			return ret;
+		}
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		{
+			var ret = await ParseAsEnumerableAsync(stream, encoding, cancellationToken).ToListAsync(cancellationToken);
+			if(ret.Count == 0) throw new FormatException(BadFormatMsg);
+			return ret;
+		}
+
+		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream srtStream, Encoding encoding)
+		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(srtStream);
-			// seek the beginning of the stream
+			// seek the beginning of the srtStream
 			srtStream.Position = 0;
 
-			// Create a StreamReader & configure it to leave the main stream open when disposing
+			// Create a StreamReader & configure it to leave the main srtStream open when disposing
 			using StreamReader reader = new StreamReader(srtStream, encoding, true, 1024, true);
-
-			List<SubtitleModel> items = new List<SubtitleModel>();
-			IEnumerable<string> srtSubParts = GetSrtSubTitleParts(reader).Peekable(out var srtSubPartsAny); // This is a lazy list, not yet into memory
-			if (srtSubPartsAny) // Ensure at least 1 part was found
+			IEnumerable<string> srtSubParts = GetParts(reader).Peekable(out var srtSubPartsAny); // This is a lazy list, not yet into memory
+			if(!srtSubPartsAny)
+				throw new FormatException(NoPartsMsg);
+			bool first = true;
+			foreach (string part in srtSubParts)
 			{
-				bool isFirstPart = true;
-				foreach (string part in srtSubParts)
-				{
-					// Ensure that our stream does not have the WebVTT header in the first part (this happen when the SRT parser pick a WebVTT file),
-					// it has some similarities with SRT and thus can somtimes work*, but time parsing will fail. https://www.w3.org/TR/webvtt1/#file-structure
-					if (isFirstPart && part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
-					{
-						throw new FormatException("This stream seems to be in WebVTT format, SRT cannot parse it.");
-					}
-
-					// Split new lines
-					IEnumerable<string> lines = part.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim());
-
-					SubtitleModel item = new SubtitleModel();
-					foreach (string line in lines)
-					{
-						// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
-						if (item.StartTime == -1 && item.EndTime == -1)
-						{
-							// Try to get the timecode
-							bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
-							if (success)
-							{
-								item.StartTime = startTc;
-								item.EndTime = endTc;
-							}
-						}
-						else // We already found the subtitle time
-						{
-							// Strip formatting by removing anything within curly braces or angle brackets, which is how SRT styles text according to wikipedia (https://en.wikipedia.org/wiki/SubRip#Formatting)
-							item.Lines.Add(Regex.Replace(line, @"\{.*?\}|<.*?>", string.Empty).Trim());
-						}
-					}
-
-					// Ensure the subtitle item is valid before pushing it to the final list
-					if ((item.StartTime != 0 || item.EndTime != 0) && item.Lines.Count >= 1)
-					{
-						items.Add(item);
-					}
-
-					// Reached the end of the processing of a part, so we are no longer in the "first part"
-					isFirstPart = false;
-				}
-
-				// Verify if we have found at least 1 subtitle, else throw
-				if (items.Count != 0)
-				{
-					return items;
-				}
-				else
-				{
-					throw new ArgumentException("Stream is not in a valid Srt format");
-				}
-			}
-			else
-			{
-				throw new FormatException("Parsing as srt returned no srt part.");
+				yield return ParsePart(part, first);
+				first = false;
 			}
 		}
+
+		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream srtStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(srtStream);
+			// seek the beginning of the srtStream
+			srtStream.Position = 0;
+
+			// Create a StreamReader & configure it to leave the main srtStream open when disposing
+			using StreamReader reader = new StreamReader(srtStream, encoding, true, 1024, true);
+
+			var srtSubParts = GetPartsAsync(reader, cancellationToken); // This is a lazy list, not yet into memory
+			var srtSubPartsAny = await srtSubParts.PeekableAsync();
+			if(!srtSubPartsAny) throw new FormatException(NoPartsMsg);
+			await foreach (string part in srtSubParts)
+				yield return ParsePart(part, srtSubPartsAny);
+		}
+
+
 
 		/// <summary>
 		/// Enumerates the subtitle parts in a srt file based on the standard line break observed between them. 
@@ -119,11 +103,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 		/// </summary>
 		/// <param name="reader">The textreader associated with the srt file</param>
 		/// <returns>An IEnumerable(string) object containing all the subtitle parts</returns>
-		private static IEnumerable<string> GetSrtSubTitleParts(TextReader reader)
+		public IEnumerable<string> GetParts(TextReader reader)
 		{
 			string? line;
 			StringBuilder stringBuilder = new StringBuilder();
-
 			while ((line = reader.ReadLine()) != null)
 			{
 				if (string.IsNullOrEmpty(line.Trim()))
@@ -148,6 +131,73 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
+		public async IAsyncEnumerable<string> GetPartsAsync(TextReader reader,[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			string? line;
+			StringBuilder stringBuilder = new StringBuilder();
+			while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
+			{
+				if (string.IsNullOrEmpty(line.Trim()))
+				{
+					// return only if not empty
+					string res = stringBuilder.ToString().TrimEnd();
+					if (!string.IsNullOrEmpty(res))
+					{
+						yield return res;
+					}
+					stringBuilder = new StringBuilder();
+				}
+				else
+				{
+					stringBuilder.AppendLine(line);
+				}
+			}
+
+			if (stringBuilder.Length > 0)
+			{
+				yield return stringBuilder.ToString();
+			}
+		}
+		public SubtitleModel ParsePart(string part, bool isFirstPart)
+		{
+			SubtitleModel item;
+			// Ensure that our stream does not have the WebVTT header in the first part (this happen when the SRT parser pick a WebVTT file),
+			// it has some similarities with SRT and thus can somtimes work*, but time parsing will fail. https://www.w3.org/TR/webvtt1/#file-structure
+			if (isFirstPart && part.Equals("WEBVTT", StringComparison.InvariantCultureIgnoreCase))
+			{
+				throw new FormatException("This stream seems to be in WebVTT format, SRT cannot parse it.");
+			}
+
+			// Split new lines
+			IEnumerable<string> lines = part.Split(_newLineCharacters, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim());
+
+			item = new SubtitleModel();
+			foreach (string line in lines)
+			{
+				// Verify if we already have defined the subtitle time (found the line that tell us the time info) or not
+				if (item.StartTime == -1 && item.EndTime == -1)
+				{
+					// Try to get the timecode
+					bool success = TryParseTimecodeLine(line, out int startTc, out int endTc);
+					if (success)
+					{
+						item.StartTime = startTc;
+						item.EndTime = endTc;
+					}
+				}
+				else // We already found the subtitle time
+				{
+					// Strip formatting by removing anything within curly braces or angle brackets, which is how SRT styles text according to wikipedia (https://en.wikipedia.org/wiki/SubRip#Formatting)
+					item.Lines.Add(Regex.Replace(line, @"\{.*?\}|<.*?>", string.Empty).Trim());
+				}
+			}
+
+			// Ensure the subtitle item is valid before pushing it to the final list
+
+
+			// Reached the end of the processing of a part, so we are no longer in the "first part"
+			return item;
+		}
 		/// <summary>
 		/// Method that try to parse a line of the srt file to get the start and end timecode.
 		/// </summary>
