@@ -7,7 +7,7 @@
     <StartupObject />
     <PackageId>SubtitlesParserV2</PackageId>
     <AssemblyName>SubtitlesParserV2</AssemblyName>
-    <Version>2.0.0</Version>
+    <Version>2.4.0</Version>
     <Title>Subtitles parser V2</Title>
     <Authors>kitsumed (Med)</Authors>
     <PackageProjectUrl>https://github.com/kitsumed/SubtitlesParserV2</PackageProjectUrl>
