@@ -39,10 +39,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 	{
 		private const string BadFormatMsg = "Stream is not in a valid Sami format";
 
-		public List<SubtitleModel> ParseStream(Stream stream, Encoding encoding)
-		{
-			return ParseStream(stream, encoding, new SamiParserConfig());
-		}
+		public List<SubtitleModel> ParseStream(Stream stream, Encoding encoding)=>
+			ParseStream(stream, encoding, new SamiParserConfig());
 
 		public List<SubtitleModel> ParseStream(Stream samiStream, Encoding encoding, SamiParserConfig config)
 		{
@@ -51,19 +49,26 @@ namespace SubtitlesParserV2.Formats.Parsers
 			return ret;
 		}
 
-		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		public Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)=>
+		ParseStreamAsync(stream, encoding, new SamiParserConfig(), cancellationToken);
+
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream srtStream, Encoding encoding)=>
+		ParseStreamConsuming(srtStream,encoding,new SamiParserConfig());
+
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)=>
+		ParseStreamConsumingAsync(stream,encoding,new SamiParserConfig(),cancellationToken);
+
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, SamiParserConfig config, CancellationToken cancellationToken = default)
 		{
-			var ret = await ParseAsEnumerableAsync(stream, encoding, new SamiParserConfig(), cancellationToken).ToListAsync(cancellationToken);
+			var ret = await ParseAsEnumerableAsync(stream, encoding, config, cancellationToken).ToListAsync(cancellationToken);
 			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
 
-		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream samiStream, Encoding encoding)
-		{
-			return ParseAsEnumerable(samiStream, encoding, new SamiParserConfig());
-		}
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream samiStream, Encoding encoding, SamiParserConfig config)=>
+			ParseAsEnumerable(samiStream, encoding,config);
 
-		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream samiStream, Encoding encoding, SamiParserConfig config)
+		private IEnumerable<SubtitleModel> ParseAsEnumerable(Stream samiStream, Encoding encoding, SamiParserConfig config)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(samiStream);
 			// seek the beginning of the stream
@@ -81,15 +86,10 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream samiStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
-		{
-			await foreach (var item in ParseAsEnumerableAsync(samiStream, encoding, new SamiParserConfig(), cancellationToken))
-			{
-				yield return item;
-			}
-		}
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream samiStream, Encoding encoding, SamiParserConfig config, CancellationToken cancellationToken = default)=>
+			ParseAsEnumerableAsync(samiStream, encoding, config, cancellationToken);
 
-		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream samiStream, Encoding encoding, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
+		private async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream samiStream, Encoding encoding, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(samiStream);
 			// seek the beginning of the stream
@@ -108,10 +108,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public IEnumerable<SamiSubtitlePart> GetParts(Stream stream, Encoding encoding)
-		{
-			return GetParts(stream, encoding, new SamiParserConfig());
-		}
+		public IEnumerable<SamiSubtitlePart> GetParts(Stream stream, Encoding encoding)=>
+			GetParts(stream, encoding, new SamiParserConfig());
 
 		public IEnumerable<SamiSubtitlePart> GetParts(Stream stream, Encoding encoding, SamiParserConfig config)
 		{
@@ -122,13 +120,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SamiSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			await foreach (var part in GetPartsAsync(stream, encoding, new SamiParserConfig(), cancellationToken))
-			{
-				yield return part;
-			}
-		}
+		public IAsyncEnumerable<SamiSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)=>
+			GetPartsAsync(stream, encoding, new SamiParserConfig(), cancellationToken);
 
 		public async IAsyncEnumerable<SamiSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, SamiParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{

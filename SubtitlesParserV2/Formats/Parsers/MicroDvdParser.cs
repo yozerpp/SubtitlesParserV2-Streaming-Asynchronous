@@ -67,10 +67,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		// Methods -------------------------------------------------------------------------
 
-		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)
-		{
-			return ParseStream(subStream, encoding, new MicroDvdParserConfig());
-		}
+		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding)=>
+			ParseStream(subStream, encoding, new MicroDvdParserConfig());
+
+		public Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default) =>
+			ParseStreamAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken);
 
 		public List<SubtitleModel> ParseStream(Stream subStream, Encoding encoding, MicroDvdParserConfig config)
 		{
@@ -79,18 +80,20 @@ namespace SubtitlesParserV2.Formats.Parsers
 			return ret;
 		}
 
-		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, MicroDvdParserConfig config, CancellationToken cancellationToken=  default)
 		{
-			var ret = await ParseAsEnumerableAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken).ToListAsync(cancellationToken);
+			var ret = await ParseAsEnumerableAsync(stream, encoding, config, cancellationToken).ToListAsync(cancellationToken);
 			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream subStream, Encoding encoding)=>
+			 ParseStreamConsuming(subStream, encoding, new MicroDvdParserConfig());
 
-		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream subStream, Encoding encoding)
-		{
-			return ParseAsEnumerable(subStream, encoding, new MicroDvdParserConfig());
-		}
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)=>
+			ParseStreamConsumingAsync(stream,encoding, new MicroDvdParserConfig(), cancellationToken);
 
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream subStream, Encoding encoding, MicroDvdParserConfig config)=>
+			ParseAsEnumerable(subStream, encoding, config);
 		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream subStream, Encoding encoding, MicroDvdParserConfig config)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(subStream);
@@ -109,13 +112,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream subStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
-		{
-			await foreach (var item in ParseAsEnumerableAsync(subStream, encoding, new MicroDvdParserConfig(), cancellationToken))
-			{
-				yield return item;
-			}
-		}
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream subStream, Encoding encoding, MicroDvdParserConfig config,CancellationToken cancellationToken) =>
+			ParseAsEnumerableAsync(subStream, encoding, config, cancellationToken);
 
 		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream subStream, Encoding encoding, MicroDvdParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
@@ -136,10 +134,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public IEnumerable<MicroDvdSubtitlePart> GetParts(Stream stream, Encoding encoding)
-		{
-			return GetParts(stream, encoding, new MicroDvdParserConfig());
-		}
+		public IEnumerable<MicroDvdSubtitlePart> GetParts(Stream stream, Encoding encoding)=>
+			GetParts(stream, encoding, new MicroDvdParserConfig());
 
 		public IEnumerable<MicroDvdSubtitlePart> GetParts(Stream stream, Encoding encoding, MicroDvdParserConfig config)
 		{
@@ -150,13 +146,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<MicroDvdSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-		{
-			await foreach (var part in GetPartsAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken))
-			{
-				yield return part;
-			}
-		}
+		public IAsyncEnumerable<MicroDvdSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default) =>
+			GetPartsAsync(stream, encoding, new MicroDvdParserConfig(), cancellationToken);
 
 		public async IAsyncEnumerable<MicroDvdSubtitlePart> GetPartsAsync(Stream stream, Encoding encoding, MicroDvdParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
@@ -167,10 +158,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public SubtitleModel ParsePart(MicroDvdSubtitlePart part, bool isFirstPart)
-		{
-			return ParsePart(part, isFirstPart, new MicroDvdParserConfig());
-		}
+		public SubtitleModel ParsePart(MicroDvdSubtitlePart part, bool isFirstPart) =>
+			ParsePart(part, isFirstPart, new MicroDvdParserConfig());
 
 		public SubtitleModel ParsePart(MicroDvdSubtitlePart part, bool isFirstPart, MicroDvdParserConfig config)
 		{

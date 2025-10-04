@@ -62,10 +62,11 @@ namespace SubtitlesParserV2.Formats.Parsers
 
 		private const string BadFormatMsg = "Stream is not in a valid Lrc format";
 
-		public List<SubtitleModel> ParseStream(Stream lrcStream, Encoding encoding)
-		{
-			return ParseStream(lrcStream, encoding, new LrcParserConfig());
-		}
+		public List<SubtitleModel> ParseStream(Stream lrcStream, Encoding encoding) =>
+			ParseStream(lrcStream, encoding, new LrcParserConfig());
+
+		public Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken = default)=>
+			ParseStreamAsync(stream,encoding,new LrcParserConfig(),cancellationToken);
 
 		public List<SubtitleModel> ParseStream(Stream lrcStream, Encoding encoding, LrcParserConfig configuration)
 		{
@@ -73,19 +74,20 @@ namespace SubtitlesParserV2.Formats.Parsers
 			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
-
-		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
+		public async Task<List<SubtitleModel>> ParseStreamAsync(Stream stream, Encoding encoding, LrcParserConfig config, CancellationToken cancellationToken = default)
 		{
-			var ret = await ParseAsEnumerableAsync(stream, encoding, new LrcParserConfig(), cancellationToken).ToListAsync(cancellationToken);
+			var ret = await ParseAsEnumerableAsync(stream, encoding, config, cancellationToken).ToListAsync(cancellationToken);
 			if (ret.Count == 0) throw new FormatException(BadFormatMsg);
 			return ret;
 		}
-
-		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream lrcStream, Encoding encoding)
-		{
-			return ParseAsEnumerable(lrcStream, encoding, new LrcParserConfig());
-		}
-
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream lrcStream, Encoding encoding) =>
+			ParseStreamConsuming(lrcStream, encoding, new LrcParserConfig());
+		public IEnumerable<SubtitleModel> ParseStreamConsuming(Stream lrcStream, Encoding encoding, LrcParserConfig configuration) =>
+			ParseAsEnumerable(lrcStream, encoding, configuration);
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream lrcStream, Encoding encoding,  CancellationToken cancellationToken = default)=>
+			ParseStreamConsumingAsync(lrcStream, encoding, new LrcParserConfig(), cancellationToken);
+		public IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream lrcStream, Encoding encoding, LrcParserConfig config, CancellationToken cancellationToken = default)=>
+			 ParseAsEnumerableAsync(lrcStream, encoding, config, cancellationToken);
 		public IEnumerable<SubtitleModel> ParseAsEnumerable(Stream lrcStream, Encoding encoding, LrcParserConfig config)
 		{
 			StreamHelper.ThrowIfStreamIsNotSeekableOrReadable(lrcStream);
@@ -104,13 +106,6 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public async IAsyncEnumerable<SubtitleModel> ParseStreamConsumingAsync(Stream lrcStream, Encoding encoding, [EnumeratorCancellation] CancellationToken cancellationToken)
-		{
-			await foreach (var item in ParseAsEnumerableAsync(lrcStream, encoding, new LrcParserConfig(), cancellationToken))
-			{
-				yield return item;
-			}
-		}
 
 		public async IAsyncEnumerable<SubtitleModel> ParseAsEnumerableAsync(Stream lrcStream, Encoding encoding, LrcParserConfig config, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
@@ -162,10 +157,8 @@ namespace SubtitlesParserV2.Formats.Parsers
 			}
 		}
 
-		public SubtitleModel ParsePart(LrcSubtitlePart part, bool isFirstPart)
-		{
-			return ParsePart(part, isFirstPart, new LrcParserConfig());
-		}
+		public SubtitleModel ParsePart(LrcSubtitlePart part, bool isFirstPart)=>
+			ParsePart(part, isFirstPart, new LrcParserConfig());
 
 		public SubtitleModel ParsePart(LrcSubtitlePart part, bool isFirstPart, LrcParserConfig config)
 		{
